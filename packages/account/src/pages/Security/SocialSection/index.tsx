@@ -19,6 +19,7 @@ import { sessionStorage } from '@ac/utils/session-storage';
 import {
   getAvailableSocialConnectors,
   getLocalizedConnectorName,
+  supportsRedirectBinding,
 } from '@ac/utils/social-connector';
 
 import styles from './index.module.scss';
@@ -237,16 +238,18 @@ const SocialSection = () => {
                   <div className={styles.actions}>
                     {identity ? (
                       <>
-                        <button
-                          type="button"
-                          className={styles.actionButton}
-                          onClick={() => {
-                            setPendingReturn(getPendingReturn() ?? currentPageUrl);
-                            navigate(getSocialChangeRoute(connector.id));
-                          }}
-                        >
-                          {t('account_center.security.change')}
-                        </button>
+                        {supportsRedirectBinding(connector) && (
+                          <button
+                            type="button"
+                            className={styles.actionButton}
+                            onClick={() => {
+                              setPendingReturn(getPendingReturn() ?? currentPageUrl);
+                              navigate(getSocialChangeRoute(connector.id));
+                            }}
+                          >
+                            {t('account_center.security.change')}
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={`${styles.actionButton} ${styles.removeButton}`}
@@ -258,16 +261,18 @@ const SocialSection = () => {
                         </button>
                       </>
                     ) : (
-                      <button
-                        type="button"
-                        className={styles.actionButton}
-                        onClick={() => {
-                          setPendingReturn(getPendingReturn() ?? currentPageUrl);
-                          navigate(getSocialAddRoute(connector.id));
-                        }}
-                      >
-                        {t('account_center.security.add')}
-                      </button>
+                      supportsRedirectBinding(connector) && (
+                        <button
+                          type="button"
+                          className={styles.actionButton}
+                          onClick={() => {
+                            setPendingReturn(getPendingReturn() ?? currentPageUrl);
+                            navigate(getSocialAddRoute(connector.id));
+                          }}
+                        >
+                          {t('account_center.security.add')}
+                        </button>
+                      )
                     )}
                   </div>
                 )}

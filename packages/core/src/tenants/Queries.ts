@@ -31,6 +31,7 @@ import { createSamlSsoConnectorSigningKeyQueries } from '#src/queries/saml-sso-c
 import { createScopeQueries } from '#src/queries/scope.js';
 import SecretQuery from '#src/queries/secret.js';
 import { createSignInExperienceQueries } from '#src/queries/sign-in-experience.js';
+import { createSocialQrCodeSessionQueries } from '#src/queries/social-qr-code-sessions.js';
 import SsoConnectorQueries from '#src/queries/sso-connectors.js';
 import { createSubjectTokenQueries } from '#src/queries/subject-token.js';
 import createTenantQueries from '#src/queries/tenant.js';
@@ -68,6 +69,7 @@ export default class Queries {
   scopes = createScopeQueries(this.pool);
   logtoConfigs = createLogtoConfigQueries(this.pool, this.wellKnownCache);
   signInExperiences = createSignInExperienceQueries(this.pool, this.wellKnownCache);
+  socialQrCodeSessions = createSocialQrCodeSessionQueries(this.pool);
   users = createUserQueries(this.pool);
   usersRoles = createUsersRolesQueries(this.pool);
   applicationsRoles = createApplicationsRolesQueries(this.pool);

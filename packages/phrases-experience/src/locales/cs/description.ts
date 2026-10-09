@@ -143,6 +143,12 @@ const description = {
     phone_verification_code: 'Ověřovací kód SMS',
     verification_code_description: 'Odeslat na {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'Naskenujte QR kód pomocí {{name}} pro přihlášení',
+    expired: 'Platnost QR kódu vypršela',
+    refresh: 'Obnovit',
+    signing_in: 'Přihlašování…',
+  },
 };
 
 export default Object.freeze(description);

@@ -141,6 +141,12 @@ const description = {
     phone_verification_code: 'รหัสยืนยันทางโทรศัพท์',
     verification_code_description: 'ส่งไปที่ {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'สแกนคิวอาร์โค้ดด้วย {{name}} เพื่อลงชื่อเข้าใช้',
+    expired: 'คิวอาร์โค้ดหมดอายุแล้ว',
+    refresh: 'รีเฟรช',
+    signing_in: 'กำลังลงชื่อเข้าใช้…',
+  },
 };
 
 export default Object.freeze(description);

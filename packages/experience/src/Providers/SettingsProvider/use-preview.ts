@@ -47,11 +47,14 @@ const usePreview = () => {
       isNative,
     } = previewConfig;
 
+    const isPreviewedMobile = !isNative && previewConfig.platform === 'mobile';
+
     const experienceSettings: SignInExperienceResponse = {
       ...rest,
       socialConnectors: filterPreviewSocialConnectors(
         isNative ? ConnectorPlatform.Native : ConnectorPlatform.Web,
-        socialConnectors
+        socialConnectors,
+        isPreviewedMobile
       ),
     };
 

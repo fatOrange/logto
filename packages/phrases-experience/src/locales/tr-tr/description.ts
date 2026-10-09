@@ -140,6 +140,12 @@ const description = {
     phone_verification_code: 'Telefon doğrulama kodu',
     verification_code_description: '{{target}} adresine gönder',
   },
+  social_qr_code: {
+    scan_hint: 'Oturum açmak için {{name}} ile QR kodunu tarayın',
+    expired: 'QR kodunun süresi doldu',
+    refresh: 'Yenile',
+    signing_in: 'Oturum açılıyor…',
+  },
 };
 
 export default Object.freeze(description);

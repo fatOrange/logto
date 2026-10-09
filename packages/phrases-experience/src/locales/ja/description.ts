@@ -140,6 +140,12 @@ const description = {
     phone_verification_code: '電話認証コード',
     verification_code_description: '{{target}}に送信',
   },
+  social_qr_code: {
+    scan_hint: '{{name}}でQRコードをスキャンしてサインインしてください',
+    expired: 'QRコードの有効期限が切れました',
+    refresh: '更新',
+    signing_in: 'サインイン中…',
+  },
 };
 
 export default Object.freeze(description);

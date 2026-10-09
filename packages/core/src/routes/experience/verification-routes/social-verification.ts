@@ -1,7 +1,9 @@
 import {
+  ConnectorType,
   GoogleConnector,
   isGoogleOneTap as isGoogleOneTapChecker,
   logtoGoogleOneTapCookieKey,
+  type SocialConnector,
 } from '@logto/connector-kit';
 import {
   VerificationType,
@@ -13,14 +15,27 @@ import type Router from 'koa-router';
 import { z } from 'zod';
 
 import RequestError from '#src/errors/RequestError/index.js';
+import {
+  isQrCodeConnectorMetadata,
+  verifySocialQrCodeSession,
+} from '#src/libraries/verification-helpers/social-qr-code.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import type TenantContext from '#src/tenants/TenantContext.js';
 import assertThat from '#src/utils/assert-that.js';
+import { type LogtoConnector } from '#src/utils/connectors/types.js';
 
 import { SocialVerification } from '../classes/verifications/social-verification.js';
 import { experienceRoutes } from '../const.js';
 import koaExperienceVerificationsAuditLog from '../middleware/koa-experience-verifications-audit-log.js';
 import { type ExperienceInteractionRouterContext } from '../types.js';
+
+/**
+ * The QR verify path requires the full social connector contract; a connector whose metadata
+ * flags QR support is always a social connector (the flag lives on social connector metadata).
+ */
+const isSocialLogtoConnector = (
+  connector: LogtoConnector
+): connector is LogtoConnector<SocialConnector> => connector.type === ConnectorType.Social;
 
 export default function socialVerificationRoutes<T extends ExperienceInteractionRouterContext>(
   router: Router<unknown, T>,
@@ -42,7 +57,7 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
         authorizationUri: z.string(),
         verificationId: z.string(),
       }),
-      status: [200, 400, 404, 500],
+      status: [200, 400, 404, 500, 501],
     }),
     koaExperienceVerificationsAuditLog({
       type: VerificationType.Social,
@@ -60,6 +75,17 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
       });
 
       const socialVerification = SocialVerification.create(libraries, queries, connectorId);
+
+      const connector = await tenantContext.libraries.socials.getConnector(connectorId);
+
+      // QR code sign-in has no redirect flow: reject explicitly with the connector's own error
+      // semantics (mapped to 501 through the connector error handler) instead of fabricating an
+      // authorization URI. The connector's `getAuthorizationUri` throws
+      // `ConnectorErrorCodes.NotImplemented`.
+      assertThat(
+        !isQrCodeConnectorMetadata(connector.metadata),
+        new RequestError({ code: 'connector.not_implemented', status: 501 })
+      );
 
       const authorizationUri = await socialVerification.createAuthorizationUrl(
         ctx,
@@ -90,7 +116,7 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
       response: z.object({
         verificationId: z.string(),
       }),
-      status: [200, 400, 404],
+      status: [200, 400, 404, 422],
     }),
     koaExperienceVerificationsAuditLog({
       type: VerificationType.Social,
@@ -114,7 +140,7 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
 
       const connector = await getConnector(connectorId);
 
-      const socialVerificationRecord = (() => {
+      const socialVerificationRecord = await (async () => {
         // Check if is Google one tap verification
         if (
           connector.metadata.id === GoogleConnector.factoryId &&
@@ -127,6 +153,22 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
           );
           ctx.experienceInteraction.setVerificationRecord(socialVerificationRecord);
           return socialVerificationRecord;
+        }
+
+        // QR code session verification: consume the confirmed, browser-bound session atomically.
+        // The QR-only connector rejects ordinary OAuth callback data, so its only valid verify
+        // input is the owned `qrCodeSessionId`.
+        if (isQrCodeConnectorMetadata(connector.metadata)) {
+          assertThat(
+            isSocialLogtoConnector(connector),
+            new RequestError({ code: 'connector.unexpected_type', status: 422 })
+          );
+
+          return verifySocialQrCodeSession(ctx, tenantContext, {
+            connector,
+            verificationId,
+            connectorData,
+          });
         }
 
         if (verificationId) {
@@ -148,7 +190,13 @@ export default function socialVerificationRoutes<T extends ExperienceInteraction
         new RequestError({ code: 'session.verification_session_not_found', status: 404 })
       );
 
-      await socialVerificationRecord.verify(ctx, tenantContext, connectorData);
+      // For QR code connectors the verification record is already verified by the consumed
+      // session's core-owned user info inside `verifySocialQrCodeSession`; the ordinary OAuth
+      // callback path is rejected there.
+      if (!isQrCodeConnectorMetadata(connector.metadata)) {
+        await socialVerificationRecord.verify(ctx, tenantContext, connectorData);
+      }
+
       // Skip captcha for social verification, as it's already verified by the connector
       ctx.experienceInteraction.skipCaptcha();
       await ctx.experienceInteraction.save();

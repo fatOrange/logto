@@ -1,12 +1,24 @@
 import type { ConnectorSession } from '@logto/connector-kit';
-import { ConnectorError, ConnectorErrorCodes, ConnectorType } from '@logto/connector-kit';
-import { jsonObjectGuard, SsoAuthenticationQueryKey } from '@logto/schemas';
+import {
+  ConnectorError,
+  ConnectorErrorCodes,
+  ConnectorType,
+  socialUserInfoGuard,
+} from '@logto/connector-kit';
+import { type JsonObject, jsonObjectGuard, SsoAuthenticationQueryKey } from '@logto/schemas';
+import type { Next } from 'koa';
+import { koaBody } from 'koa-body';
 import { z } from 'zod';
 
 import { idpInitiatedSamlSsoSessionCookieName, ssoPath } from '#src/constants/index.js';
 import { EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
-import koaAuditLog from '#src/middleware/koa-audit-log.js';
+import {
+  assertQrCodeConnector,
+  type QrCodeCapableConnector,
+  type SocialQrCodeCallbackResult,
+} from '#src/libraries/verification-helpers/social-qr-code.js';
+import koaAuditLog, { type WithLogContext } from '#src/middleware/koa-audit-log.js';
 import { verifyBearerTokenFromRequest } from '#src/middleware/koa-auth/index.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import SamlConnector from '#src/sso/SamlConnector/index.js';
@@ -312,4 +324,117 @@ export default function authnRoutes<T extends AnonymousRouter>(
       return next();
     }
   );
+
+  /**
+   * WeChat MP parameterized QR code event callback (public, tenant-resolved).
+   *
+   * GET  `/api/authn/qr-code/:connectorId` — WeChat server URL validation; the connector verifies
+   *                                          the signature and the verified `echostr` is echoed.
+   * POST `/api/authn/qr-code/:connectorId` — WeChat event push; the connector verifies the
+   *                                          signature (and decrypts in safe mode), and a
+   *                                          qualifying SCAN/subscribe event atomically confirms
+   *                                          the pending QR session (first scan wins). All valid
+   *                                          events are acknowledged with `text/plain`.
+   *
+   * Every request is dev-feature and capability gated; invalid signature/appId/encryption mode
+   * rejects with a non-2xx status and is never acknowledged.
+   */
+  const qrCodeCallbackHandler = async (
+    ctx: WithLogContext,
+    connector: QrCodeCapableConnector,
+    body: string | undefined,
+    next: Next
+  ) => {
+    const { connectorId } = ctx.params;
+    const result: SocialQrCodeCallbackResult = await connector.handleQrCodeCallback(
+      { ...ctx.query },
+      body
+    );
+
+    // A qualifying login event: atomically confirm the pending, unexpired session for this scene
+    // (first scan wins; duplicate scans, consumed and expired sessions are no-ops).
+    if (result.scene && result.userInfo) {
+      const parsedUserInfo = socialUserInfoGuard.safeParse(result.userInfo);
+
+      if (!parsedUserInfo.success) {
+        throw new ConnectorError(ConnectorErrorCodes.InvalidResponse, {
+          message: 'The QR code callback user info does not conform to the social user info guard.',
+        });
+      }
+
+      await queries.socialQrCodeSessions.confirmPendingSessionByConnectorIdAndScene(
+        connector.dbEntry.id,
+        result.scene,
+        /**
+         * The connector-validated user info is JSON-serializable by the guard's contract, but
+         * TypeScript cannot infer the `JsonObject` index signature from the zod output type;
+         * assign it directly without re-encoding (persisted via `sql.jsonb` exactly once).
+         */
+        // eslint-disable-next-line no-restricted-syntax
+        parsedUserInfo.data as unknown as JsonObject
+      );
+    }
+
+    ctx.createLog('Interaction.SignIn.Verification.QrCode.Submit').append({
+      payload: {
+        connectorId,
+        scene: result.scene,
+        confirmed: Boolean(result.scene && result.userInfo),
+      },
+    });
+
+    // Acknowledge with the connector's response (echostr for GET validation, 'success' for
+    // events) as plain text, per the WeChat callback contract.
+    ctx.body = result.response;
+    ctx.type = 'text/plain';
+
+    return next();
+  };
+
+  /**
+   * WeChat service-account (公众号) QR code sign-in is a dev feature: the public callback surface
+   * is registered only when dev features are enabled, so the routes — and the OpenAPI operations
+   * generated from them — disappear entirely in production deployments where the feature is off
+   * (the QR-capable connector factories are hidden there as well). The runtime capability guards
+   * (`assertQrCodeConnector`) inside the handlers remain as defense-in-depth.
+   */
+  if (EnvSet.values.isDevFeaturesEnabled) {
+    router.get(
+      '/authn/qr-code/:connectorId',
+      koaGuard({
+        params: z.object({ connectorId: z.string().min(1) }),
+        status: [200, 400, 404, 422],
+      }),
+      koaAuditLog(queries),
+      async (ctx, next) => {
+        const { connectorId } = ctx.guard.params;
+        const connector = await getConnector(connectorId);
+        assertQrCodeConnector(connector);
+
+        return qrCodeCallbackHandler(ctx, connector, undefined, next);
+      }
+    );
+
+    router.post(
+      '/authn/qr-code/:connectorId',
+      // Pass the raw XML payload through to the connector; size is bounded here (64 KiB) and
+      // signature/decryption is enforced by the connector.
+      koaBody({ text: true, textTypes: ['text/*', 'application/xml'], textLimit: '64kb' }),
+      koaGuard({
+        params: z.object({ connectorId: z.string().min(1) }),
+        status: [200, 400, 404, 422],
+      }),
+      koaAuditLog(queries),
+      async (ctx, next) => {
+        const { connectorId } = ctx.guard.params;
+        const connector = await getConnector(connectorId);
+        assertQrCodeConnector(connector);
+
+        const rawBody = typeof ctx.request.body === 'string' ? ctx.request.body : undefined;
+        assertThat(rawBody, new RequestError({ code: 'guard.invalid_input', status: 400 }));
+
+        return qrCodeCallbackHandler(ctx, connector, rawBody, next);
+      }
+    );
+  }
 }

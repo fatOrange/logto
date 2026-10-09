@@ -14,6 +14,7 @@ import { identificationApiPayloadGuard, InteractionEvent } from '@logto/schemas'
 import type Router from 'koa-router';
 import { z } from 'zod';
 
+import { EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import koaInteractionDetails from '#src/middleware/koa-interaction-details.js';
@@ -38,6 +39,7 @@ import enterpriseSsoVerificationRoutes from './verification-routes/enterprise-ss
 import newPasswordIdentityVerificationRoutes from './verification-routes/new-password-identity-verification.js';
 import oneTimeTokenRoutes from './verification-routes/one-time-token.js';
 import passwordVerificationRoutes from './verification-routes/password-verification.js';
+import socialQrCodeVerificationRoutes from './verification-routes/social-qr-code-verification.js';
 import socialVerificationRoutes from './verification-routes/social-verification.js';
 import totpVerificationRoutes from './verification-routes/totp-verification.js';
 import verificationCodeRoutes from './verification-routes/verification-code.js';
@@ -250,6 +252,16 @@ export default function experienceApiRoutes<T extends AnonymousRouter>(
   passwordVerificationRoutes(experienceRouter, tenant);
   verificationCodeRoutes(experienceRouter, tenant);
   socialVerificationRoutes(experienceRouter, tenant);
+  /**
+   * WeChat service-account (公众号) QR code sign-in is a dev feature: the QR session routes are
+   * registered only when dev features are enabled, so the paths — and the OpenAPI operations
+   * generated from them — disappear entirely in production deployments where the feature is off.
+   * The runtime capability guards (`assertQrCodeConnector`) inside the handlers remain as
+   * defense-in-depth.
+   */
+  if (EnvSet.values.isDevFeaturesEnabled) {
+    socialQrCodeVerificationRoutes(experienceRouter, tenant);
+  }
   enterpriseSsoVerificationRoutes(experienceRouter, tenant);
   totpVerificationRoutes(experienceRouter, tenant);
   webAuthnVerificationRoute(experienceRouter, tenant);

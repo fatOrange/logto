@@ -22,7 +22,7 @@ import useApi from '@ac/hooks/use-api';
 import useErrorHandler from '@ac/hooks/use-error-handler';
 import { canManageSocialIdentitiesWithoutVerification } from '@ac/utils/security-page';
 import { accountStorage, sessionStorage } from '@ac/utils/session-storage';
-import { getLocalizedConnectorName } from '@ac/utils/social-connector';
+import { getLocalizedConnectorName, supportsRedirectBinding } from '@ac/utils/social-connector';
 import { finalizeSocialFlowFailure, finalizeSocialFlowSuccess } from '@ac/utils/social-flow';
 
 type Props = {
@@ -32,6 +32,7 @@ type Props = {
 const generateState = () =>
   `${accountCenterSocialStatePrefix}${crypto.randomUUID().replaceAll('-', '')}`;
 
+// eslint-disable-next-line complexity -- Existing add/remove/change policies also require a QR-only redirect guard.
 const SocialFlow = ({ mode }: Props) => {
   const {
     t,
@@ -151,6 +152,10 @@ const SocialFlow = ({ mode }: Props) => {
     }
 
     if (!connectorId || !connector || !flowKey || startedFlowKey === flowKey) {
+      return;
+    }
+
+    if (mode !== 'remove' && !supportsRedirectBinding(connector)) {
       return;
     }
 
@@ -287,7 +292,7 @@ const SocialFlow = ({ mode }: Props) => {
     return <GlobalLoading />;
   }
 
-  if (!connectorId || !connector) {
+  if (!connector || (mode !== 'remove' && !supportsRedirectBinding(connector))) {
     return (
       <ErrorPage
         titleKey="error.something_went_wrong"

@@ -127,6 +127,12 @@ const description = {
     phone_verification_code: '短信验证码',
     verification_code_description: '发送至 {{target}}',
   },
+  social_qr_code: {
+    scan_hint: '使用 {{name}} 扫描二维码登录',
+    expired: '二维码已过期',
+    refresh: '刷新',
+    signing_in: '正在登录…',
+  },
 };
 
 export default Object.freeze(description);

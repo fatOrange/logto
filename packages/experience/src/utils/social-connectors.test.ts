@@ -1,5 +1,5 @@
 import { GoogleConnector } from '@logto/connector-kit';
-import type { ConnectorMetadata } from '@logto/schemas';
+import type { ConnectorMetadata, ExperienceSocialConnector } from '@logto/schemas';
 import {
   accountCenterSocialStatePrefix,
   ConnectorPlatform,
@@ -41,6 +41,11 @@ jest.mock('tiny-cookie', () => ({
 const getLogtoNativeSdkMock = getLogtoNativeSdk as jest.Mock;
 const isNativeWebviewMock = isNativeWebview as jest.Mock;
 const getCookieMock = getCookie as jest.Mock;
+
+const setMobileDevice = (isMobile: boolean) => {
+  document.body.classList.toggle('mobile', isMobile);
+  document.body.classList.toggle('desktop', !isMobile);
+};
 
 describe('filterSocialConnectors', () => {
   afterEach(() => {
@@ -147,6 +152,77 @@ describe('filterPreviewSocialConnectors', () => {
       { platform: 'Native', target: 'wechat' },
       { platform: 'Native', target: 'alipay' },
     ]);
+  });
+
+  describe('QR code sign-in connectors (WeChat MP)', () => {
+    const qrCodeConnector: ExperienceSocialConnector = {
+      id: 'wechat-mp-web',
+      target: 'wechat-mp',
+      platform: ConnectorPlatform.Web,
+      name: { en: 'WeChat MP' },
+      logo: 'https://example.com/wechat-mp.png',
+      logoDark: null,
+      isQrCodeSupported: true,
+    };
+
+    const ordinaryWebConnector: ExperienceSocialConnector = {
+      id: 'google-web',
+      target: 'google',
+      platform: ConnectorPlatform.Web,
+      name: { en: 'Google' },
+      logo: 'https://example.com/google.png',
+      logoDark: null,
+    };
+
+    afterEach(() => {
+      setMobileDevice(false);
+    });
+
+    it('hides the QR connector on mobile devices in the real flow', () => {
+      setMobileDevice(true);
+
+      expect(filterSocialConnectors([ordinaryWebConnector, qrCodeConnector])).toEqual([
+        ordinaryWebConnector,
+      ]);
+    });
+
+    it('keeps the QR connector on desktop in the real flow', () => {
+      setMobileDevice(false);
+
+      expect(filterSocialConnectors([qrCodeConnector])).toEqual([qrCodeConnector]);
+    });
+
+    it('hides the QR connector in the mobile preview', () => {
+      setMobileDevice(true);
+
+      expect(filterPreviewSocialConnectors(ConnectorPlatform.Web, [qrCodeConnector])).toEqual([]);
+    });
+
+    it('keeps the QR connector in the desktop preview', () => {
+      setMobileDevice(false);
+
+      expect(filterPreviewSocialConnectors(ConnectorPlatform.Web, [qrCodeConnector])).toEqual([
+        qrCodeConnector,
+      ]);
+    });
+
+    it('does not hide an ordinary connector that merely carries the capability flag', () => {
+      setMobileDevice(true);
+      const ordinaryConnectorWithFlag: ExperienceSocialConnector = {
+        id: 'google-web-flagged',
+        target: 'google',
+        platform: ConnectorPlatform.Web,
+        name: { en: 'Google' },
+        logo: 'https://example.com/google.png',
+        logoDark: null,
+        isQrCodeSupported: true,
+      };
+
+      // Only the WeChat MP target is QR-sign-in; other targets keep standard behavior.
+      expect(filterSocialConnectors([ordinaryConnectorWithFlag])).toEqual([
+        ordinaryConnectorWithFlag,
+      ]);
+    });
   });
 });
 

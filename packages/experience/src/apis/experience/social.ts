@@ -43,6 +43,43 @@ export const verifySocialVerification = async (
     })
     .json<VerificationResponse>();
 
+export type SocialQrCodeSessionResponse = {
+  verificationId: string;
+  /** QR code image as a data URI, rendered directly in an <img>. */
+  qrCode: string;
+  /** Epoch milliseconds at which the QR session expires. */
+  expiresAt: number;
+};
+
+export type SocialQrCodeSessionStatus = 'pending' | 'confirmed' | 'expired';
+
+/**
+ * Create a QR sign-in session for the given social connector.
+ *
+ * Re-initializes the interaction as `SignIn` first — the same normalization seam the redirect
+ * flow applies in `getSocialAuthorizationUrl` — so a session started on a register-first screen
+ * identifies (and, for new users, registers) identically to the redirect flow.
+ *
+ * Returns the QR image (data URI) and its expiry.
+ */
+export const createSocialQrCodeSession = async (connectorId: string) => {
+  await initInteraction(InteractionEvent.SignIn);
+
+  return api
+    .post(`${experienceApiRoutes.verification}/social/${connectorId}/qr-code`, { json: {} })
+    .json<SocialQrCodeSessionResponse>();
+};
+
+/** Get the sign-in status of a QR session. Does not consume the session. */
+export const getSocialQrCodeSessionStatus = async (connectorId: string, verificationId: string) =>
+  api
+    .get(`${experienceApiRoutes.verification}/social/${connectorId}/qr-code/${verificationId}`)
+    .json<{ status: SocialQrCodeSessionStatus }>();
+
+/** Invalidate a QR session (owner-only). */
+export const deleteSocialQrCodeSession = async (connectorId: string, verificationId: string) =>
+  api.delete(`${experienceApiRoutes.verification}/social/${connectorId}/qr-code/${verificationId}`);
+
 export const bindSocialRelatedUser = async (verificationId: string) => {
   await updateInteractionEvent(InteractionEvent.SignIn);
   await identifyUser({ verificationId, linkSocialIdentity: true });

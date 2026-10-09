@@ -146,6 +146,12 @@ const description = {
     phone_verification_code: 'Код подтверждения по телефону',
     verification_code_description: 'Отправить на {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'Отсканируйте QR-код с помощью {{name}}, чтобы войти',
+    expired: 'Срок действия QR-кода истёк',
+    refresh: 'Обновить',
+    signing_in: 'Вход…',
+  },
 };
 
 export default Object.freeze(description);

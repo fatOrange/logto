@@ -135,6 +135,12 @@ const description = {
     phone_verification_code: '전화 인증 코드',
     verification_code_description: '{{target}}로 전송',
   },
+  social_qr_code: {
+    scan_hint: '{{name}}(으)로 QR 코드를 스캔하여 로그인하세요',
+    expired: 'QR 코드가 만료되었습니다',
+    refresh: '새로 고침',
+    signing_in: '로그인 중…',
+  },
 };
 
 export default Object.freeze(description);

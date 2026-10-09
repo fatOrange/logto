@@ -146,6 +146,12 @@ const description = {
     phone_verification_code: 'Kod weryfikacyjny telefonu',
     verification_code_description: 'Wyślij do {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'Zeskanuj kod QR za pomocą {{name}}, aby się zalogować',
+    expired: 'Kod QR wygasł',
+    refresh: 'Odśwież',
+    signing_in: 'Logowanie…',
+  },
 };
 
 export default Object.freeze(description);

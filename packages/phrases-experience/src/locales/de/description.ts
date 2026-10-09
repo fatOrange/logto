@@ -148,6 +148,12 @@ const description = {
     phone_verification_code: 'Telefon-Bestätigungscode',
     verification_code_description: 'Senden an {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'Scannen Sie den QR-Code mit {{name}}, um sich anzumelden',
+    expired: 'QR-Code abgelaufen',
+    refresh: 'Aktualisieren',
+    signing_in: 'Anmeldung…',
+  },
 };
 
 export default Object.freeze(description);

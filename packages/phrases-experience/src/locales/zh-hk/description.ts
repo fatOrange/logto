@@ -127,6 +127,12 @@ const description = {
     phone_verification_code: '短訊驗證碼',
     verification_code_description: '發送至 {{target}}',
   },
+  social_qr_code: {
+    scan_hint: '使用 {{name}} 掃描二維碼登入',
+    expired: '二維碼已過期',
+    refresh: '重新整理',
+    signing_in: '正在登入…',
+  },
 };
 
 export default Object.freeze(description);

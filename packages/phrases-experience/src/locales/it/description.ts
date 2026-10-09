@@ -146,6 +146,12 @@ const description = {
     phone_verification_code: 'Codice di verifica telefonico',
     verification_code_description: 'Invia a {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'Scansiona il codice QR con {{name}} per accedere',
+    expired: 'Il codice QR è scaduto',
+    refresh: 'Aggiorna',
+    signing_in: 'Accesso in corso…',
+  },
 };
 
 export default Object.freeze(description);

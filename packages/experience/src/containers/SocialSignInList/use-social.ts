@@ -1,6 +1,7 @@
 import {
   AgreeToTermsPolicy,
   ConnectorPlatform,
+  type Theme,
   VerificationType,
   type ExperienceSocialConnector,
 } from '@logto/schemas';
@@ -17,6 +18,22 @@ import { searchKeys } from '@/shared/utils/search-parameters';
 import { getLogtoNativeSdk, isNativeWebview } from '@/utils/native-sdk';
 import { generateState, storeState, buildSocialLandingUri } from '@/utils/social-connectors';
 import { storeRedirectContext } from '@/utils/social-redirect-fallback-context';
+
+import useSocialQrCodeSignIn, {
+  type UseSocialQrCodeSignInReturn,
+} from './use-social-qr-code-sign-in';
+
+export type { QrCodeSignInState, SocialQrCodeSession } from './use-social-qr-code-sign-in';
+
+type UseSocialReturn = {
+  readonly theme: Theme;
+  readonly socialConnectors: ExperienceSocialConnector[];
+  readonly invokeSocialSignIn: (connector: ExperienceSocialConnector) => Promise<void>;
+  readonly invokeQrCodeSignIn: (connector: ExperienceSocialConnector) => Promise<void>;
+} & Pick<
+  UseSocialQrCodeSignInReturn,
+  'qrCodeSignIn' | 'refreshQrCodeSignIn' | 'cancelQrCodeSignIn'
+>;
 
 const useSocial = () => {
   const { experienceSettings, theme } = useContext(PageContext);
@@ -115,11 +132,22 @@ const useSocial = () => {
     ]
   );
 
+  const {
+    qrCodeSignIn,
+    invokeQrCodeSignIn,
+    refreshQrCodeSignIn,
+    cancelQrCodeSignIn,
+  }: UseSocialQrCodeSignInReturn = useSocialQrCodeSignIn();
+
   return {
     theme,
     socialConnectors: experienceSettings?.socialConnectors ?? [],
     invokeSocialSignIn: invokeSocialSignInHandler,
-  };
+    qrCodeSignIn,
+    invokeQrCodeSignIn,
+    refreshQrCodeSignIn,
+    cancelQrCodeSignIn,
+  } satisfies UseSocialReturn;
 };
 
 export default useSocial;

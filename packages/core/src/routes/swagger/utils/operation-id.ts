@@ -32,6 +32,18 @@ export const customRoutes: Readonly<RouteDictionary> = Object.freeze({
   // Authn
   'get /authn/hasura': 'GetHasuraAuth',
   'post /authn/saml/:connectorId': 'AssertSaml',
+  /**
+   * WeChat service-account (公众号) QR code sign-in is a dev feature: the callback routes are
+   * only registered when dev features are enabled (see `routes/authn.ts`), and
+   * `throwByDifference` requires this dictionary to match the routes that are actually built,
+   * so these IDs are only reserved while the routes are registered.
+   */
+  ...conditional(
+    EnvSet.values.isDevFeaturesEnabled && {
+      'get /authn/qr-code/:connectorId': 'VerifyQrCodeCallbackUrl',
+      'post /authn/qr-code/:connectorId': 'HandleQrCodeCallback',
+    }
+  ),
   'post /authn/single-sign-on/saml/:connectorId': 'AssertSingleSignOnSaml',
   // Organization users
   'post /organizations/:id/users': 'AddOrganizationUsers',

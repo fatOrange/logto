@@ -129,4 +129,6 @@ export type LogKey =
   | `${Prefix}.${InteractionEvent}.${Field.StepUp}.${Action.Submit}`
   // IdpInitiatedSingleSignOn log, used upon receiving a SAML request from the IdP
   | `${Prefix}.${InteractionEvent.SignIn}.${Field.Verification}.IdpInitiatedSso.${Action.Create}`
+  // WeChat MP QR code event callback (public route); logs the scene handling outcome.
+  | `${Prefix}.${InteractionEvent.SignIn}.${Field.Verification}.QrCode.${Action.Submit}`
   | DeprecatedInteractionLogKey;

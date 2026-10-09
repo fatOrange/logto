@@ -26,3 +26,11 @@ export const getLocalizedConnectorName = (
 
   return localizedName ?? connector.name.en;
 };
+
+/**
+ * Whether the connector supports the redirect-based (authorization URI) binding flow of the
+ * account center. QR-code-only connectors do not implement `getAuthorizationUri`, so the
+ * add/change identity actions must be hidden for them.
+ */
+export const supportsRedirectBinding = (connector: ExperienceSocialConnector): boolean =>
+  connector.isQrCodeSupported !== true;

@@ -142,6 +142,12 @@ const description = {
     phone_verification_code: 'کد تأیید تلفن',
     verification_code_description: 'ارسال به {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'برای ورود، کد QR را با {{name}} اسکن کنید',
+    expired: 'کد QR منقضی شده است',
+    refresh: 'به‌روزرسانی',
+    signing_in: 'در حال ورود…',
+  },
 };
 
 export default Object.freeze(description);

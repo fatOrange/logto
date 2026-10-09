@@ -1,0 +1,107 @@
+{
+  "tags": [
+    {
+      "name": "Dev feature"
+    }
+  ],
+  "paths": {
+    "/api/experience/verification/social/{connectorId}/qr-code": {
+      "post": {
+        "operationId": "CreateSocialQrCodeSession",
+        "summary": "Create social QR code session",
+        "description": "Create a browser-bound QR code session for the given social connector and return the QR code image (PNG data URI) with the session's verification ID and expiry. Dev feature.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The QR code session has been created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "verificationId": {
+                      "description": "The unique verification ID of the newly created Social verification record. Use this ID for polling, cancellation, and the verify call."
+                    },
+                    "qrCode": {
+                      "description": "The QR code image as a PNG data URI, rendered from the connector-provided QR content URL."
+                    },
+                    "expiresAt": {
+                      "description": "The session expiry time in epoch milliseconds."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The social connector is not found."
+          },
+          "422": {
+            "description": "Dev features are disabled, or the connector does not support QR code sign-in."
+          },
+          "500": {
+            "description": "The connector failed to create the QR code (e.g. WeChat API error) or the request was superseded by a newer session."
+          }
+        }
+      }
+    },
+    "/api/experience/verification/social/{connectorId}/qr-code/{verificationId}": {
+      "get": {
+        "operationId": "GetSocialQrCodeSessionStatus",
+        "summary": "Get social QR code session status",
+        "description": "Poll the status of a QR code session owned by the current interaction. Returns `pending`, `confirmed` (a qualifying WeChat event has been received and stored), or `expired`. No state is consumed by polling. Dev feature.",
+        "responses": {
+          "200": {
+            "description": "The session status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "status": {
+                      "description": "The QR code session status. `confirmed` sessions still need to be consumed through the verify endpoint; `expired` sessions cannot be verified."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The verification record is not found in the current interaction."
+          },
+          "400": {
+            "description": "The connector rejected the request (e.g. invalid configuration)."
+          },
+          "422": {
+            "description": "Dev features are disabled, or the connector does not support QR code sign-in."
+          }
+        }
+      },
+      "delete": {
+        "operationId": "DeleteSocialQrCodeSession",
+        "summary": "Delete social QR code session",
+        "description": "Invalidate (cancel) the QR code session owned by the current interaction. Idempotent; a cancelled session can no longer be confirmed or consumed. Dev feature.",
+        "responses": {
+          "204": {
+            "description": "The session has been invalidated, or did not exist."
+          },
+          "404": {
+            "description": "The verification record is not found in the current interaction."
+          },
+          "400": {
+            "description": "The connector rejected the request (e.g. invalid configuration)."
+          },
+          "422": {
+            "description": "Dev features are disabled, or the connector does not support QR code sign-in."
+          }
+        }
+      }
+    }
+  }
+}

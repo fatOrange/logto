@@ -141,6 +141,12 @@ const description = {
     phone_verification_code: 'رمز التحقق عبر الهاتف',
     verification_code_description: 'إرسال إلى {{target}}',
   },
+  social_qr_code: {
+    scan_hint: 'امسح رمز الاستجابة السريعة باستخدام {{name}} لتسجيل الدخول',
+    expired: 'انتهت صلاحية رمز الاستجابة السريعة',
+    refresh: 'تحديث',
+    signing_in: 'جارٍ تسجيل الدخول…',
+  },
 };
 
 export default Object.freeze(description);

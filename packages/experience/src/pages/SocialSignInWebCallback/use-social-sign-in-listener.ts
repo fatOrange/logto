@@ -3,30 +3,19 @@ import {
   isGoogleOneTap as isGoogleOneTapChecker,
 } from '@logto/connector-kit';
 import type { RequestErrorBody } from '@logto/schemas';
-import { InteractionEvent, SignInMode, VerificationType, experience } from '@logto/schemas';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { InteractionEvent, VerificationType, experience } from '@logto/schemas';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { validate } from 'superstruct';
 
 import UserInteractionContext from '@/Providers/UserInteractionContextProvider/UserInteractionContext';
-import {
-  identifyAndSubmitInteraction,
-  initInteraction,
-  verifySocialVerification,
-} from '@/apis/experience';
-import useBindSocialRelatedUser from '@/containers/SocialLinkAccount/use-social-link-related-user';
+import { initInteraction, verifySocialVerification } from '@/apis/experience';
 import useApi from '@/hooks/use-api';
-import type { ErrorHandlers } from '@/hooks/use-error-handler';
 import useErrorHandler from '@/hooks/use-error-handler';
-import useGlobalRedirectTo from '@/hooks/use-global-redirect-to';
 import useNavigateWithPreservedSearchParams from '@/hooks/use-navigate-with-preserved-search-params';
 import useRedirectCallbackValidation from '@/hooks/use-redirect-callback-validation';
-import { useSieMethods } from '@/hooks/use-sie';
-import useSocialRegister from '@/hooks/use-social-register';
-import useSubmitInteractionErrorHandler from '@/hooks/use-submit-interaction-error-handler';
+import useSocialSignInCompletion from '@/hooks/use-social-sign-in-completion';
 import useToast from '@/hooks/use-toast';
-import { socialAccountNotExistErrorDataGuard } from '@/types/guard';
 import { parseQueryParameters } from '@/utils';
 import { validateGoogleOneTapCredential } from '@/utils/social-connectors';
 
@@ -35,7 +24,6 @@ import { normalizeExternalWebsiteGoogleOneTapConnectorData } from './utils';
 const useSocialSignInListener = (connectorId: string) => {
   const [loading, setLoading] = useState(true);
   const { setToast } = useToast();
-  const { signInMode, socialSignInSettings } = useSieMethods();
   const { t } = useTranslation();
   const [isConsumed, setIsConsumed] = useState(false);
   const [searchParameters, setSearchParameters] = useSearchParams();
@@ -49,70 +37,27 @@ const useSocialSignInListener = (connectorId: string) => {
 
   const navigate = useNavigateWithPreservedSearchParams();
   const handleError = useErrorHandler();
-  const bindSocialRelatedUser = useBindSocialRelatedUser();
   const verifySocial = useApi(verifySocialVerification);
-  const asyncSignInWithSocial = useApi(identifyAndSubmitInteraction);
   const asyncInitInteraction = useApi(initInteraction);
-  const redirectTo = useGlobalRedirectTo();
 
   const navigateToSignIn = useCallback(() => {
     navigate('/' + experience.routes.signIn, { replace: true });
   }, [navigate]);
 
-  const registerWithSocial = useSocialRegister(connectorId, {
+  /**
+   * Canonical sign-in completion (account linking, auto registration, sign-in-only policy,
+   * email blocklist, profile/MFA error handling, final redirect) shared with the inline QR
+   * sign-in flow.
+   */
+  const signInWithSocial = useSocialSignInCompletion(connectorId, {
     replace: true,
-    onEmailBlocked: navigateToSignIn,
-  });
-
-  const accountNotExistErrorHandler = useCallback(
-    async (error: RequestErrorBody) => {
-      const [, data] = validate(error.data, socialAccountNotExistErrorDataGuard);
-      const { relatedUser } = data ?? {};
-      const verificationId = verificationIdRef.current;
-
-      // Redirect to sign-in page if the verificationId is not set properly
-      if (!verificationId) {
-        setToast(t('error.invalid_session'));
-        navigateToSignIn();
-        return;
-      }
-
-      if (relatedUser) {
-        if (socialSignInSettings.automaticAccountLinking) {
-          await bindSocialRelatedUser(verificationId);
-        } else {
-          navigate(`/social/link/${connectorId}`, {
-            replace: true,
-            state: { relatedUser },
-          });
-        }
-
-        return;
-      }
-
-      // Should not let user register new social account under sign-in only mode
-      if (signInMode === SignInMode.SignIn) {
-        setToast(error.message);
-        navigateToSignIn();
-        return;
-      }
-
-      // Register with social
-      await registerWithSocial(verificationId);
+    onReturnToSignIn: () => {
+      setLoading(false);
     },
-    [
-      bindSocialRelatedUser,
-      connectorId,
-      navigate,
-      navigateToSignIn,
-      registerWithSocial,
-      setToast,
-      signInMode,
-      socialSignInSettings.automaticAccountLinking,
-      t,
-      verificationIdRef,
-    ]
-  );
+    onError: () => {
+      setLoading(false);
+    },
+  });
 
   const globalErrorHandler = useCallback(
     async (error: RequestErrorBody) => {
@@ -120,20 +65,6 @@ const useSocialSignInListener = (connectorId: string) => {
       navigateToSignIn();
     },
     [navigateToSignIn, setToast]
-  );
-
-  const preSignInErrorHandler = useSubmitInteractionErrorHandler(InteractionEvent.SignIn, {
-    replace: true,
-    onEmailBlocked: navigateToSignIn,
-  });
-
-  const signInWithSocialErrorHandlers: ErrorHandlers = useMemo(
-    () => ({
-      'user.identity_not_exist': accountNotExistErrorHandler,
-      ...preSignInErrorHandler,
-      global: globalErrorHandler,
-    }),
-    [preSignInErrorHandler, globalErrorHandler, accountNotExistErrorHandler]
   );
 
   const verifySocialCallbackData = useCallback(
@@ -188,26 +119,10 @@ const useSocialSignInListener = (connectorId: string) => {
       if (!verificationId) {
         return;
       }
-      const [error, result] = await asyncSignInWithSocial({ verificationId });
 
-      if (error) {
-        setLoading(false);
-        await handleError(error, signInWithSocialErrorHandlers);
-
-        return;
-      }
-
-      if (result?.redirectTo) {
-        await redirectTo(result.redirectTo);
-      }
+      await signInWithSocial(verificationId);
     },
-    [
-      asyncSignInWithSocial,
-      handleError,
-      redirectTo,
-      signInWithSocialErrorHandlers,
-      verifySocialCallbackData,
-    ]
+    [signInWithSocial, verifySocialCallbackData]
   );
 
   // Social Sign-in Callback Handler

@@ -141,5 +141,15 @@ export const loadConnectorFactories = async () => {
 
   checkDuplicateConnectorFactoriesId(connectorFactories);
 
-  return connectorFactories;
+  // The WeChat MP QR code sign-in flow is a dev feature: hide its factory from discovery when
+  // dev features are disabled so it cannot be newly configured outside dev environments.
+  // Already-configured connectors stay functional but all their QR operations are gated at the
+  // route level.
+  if (EnvSet.values.isDevFeaturesEnabled) {
+    return connectorFactories;
+  }
+
+  return connectorFactories.filter(
+    (connectorFactory) => connectorFactory.metadata.isQrCodeSupported !== true
+  );
 };

@@ -9,6 +9,7 @@ import { useSieMethods } from '@/hooks/use-sie';
 import useSingleSignOn from '@/hooks/use-single-sign-on';
 import { LoadingIconWithContainer } from '@/shared/components/LoadingLayer';
 import { logtoGoogleOneTapCookie } from '@/utils/cookies';
+import { isQrCodeSignInConnector } from '@/utils/social-connectors';
 
 import styles from './index.module.scss';
 
@@ -39,6 +40,15 @@ const DirectSignIn = () => {
         if (social.target === GoogleConnector.target && logtoGoogleOneTapCookie) {
           // eslint-disable-next-line @silverhand/fp/no-mutation
           window.location.href = `${window.location.origin}/callback/${experienceSettings?.googleOneTap?.connectorId}`;
+          return;
+        }
+
+        /**
+         * QR sign-in connectors have no redirect flow; their inline panel is hosted by the
+         * existing sign-in/register surface, so honor the requested fallback screen.
+         */
+        if (isQrCodeSignInConnector(social)) {
+          window.location.replace('/' + fallback);
           return;
         }
 

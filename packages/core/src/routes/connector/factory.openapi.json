@@ -12,7 +12,23 @@
         "description": "Get all connector factories data available in Logto.",
         "responses": {
           "200": {
-            "description": "An array of connector factories."
+            "description": "An array of connector factories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "isQrCodeSupported": {
+                        "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                        "x-logto-dev-feature": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -23,7 +39,20 @@
         "description": "Get connector factory by the given ID.",
         "responses": {
           "200": {
-            "description": "Connector factory data."
+            "description": "Connector factory data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isQrCodeSupported": {
+                      "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                      "x-logto-dev-feature": true
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Connector factory not found."

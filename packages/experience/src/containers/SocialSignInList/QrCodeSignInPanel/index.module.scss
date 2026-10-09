@@ -1,0 +1,76 @@
+@use '@/shared/scss/underscore' as _;
+
+.qrCodePanel {
+  @include _.flex-column;
+  margin-bottom: _.unit(4);
+}
+
+.qrCodePanelBody {
+  @include _.flex-column(center);
+  width: 100%;
+}
+
+.qrCodePanelQrWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--color-line-divider);
+  border-radius: var(--radius);
+  overflow: hidden;
+
+  > img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    @include _.image-align-center;
+  }
+}
+
+.qrCodePanelExpiryOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: _.unit(3);
+  background: var(--color-bg-light);
+}
+
+.qrCodePanelExpiryText {
+  font: var(--font-label-1);
+  color: var(--color-type-secondary);
+}
+
+.qrCodePanelHint {
+  margin-top: _.unit(3);
+  font: var(--font-label-1);
+  color: var(--color-type-secondary);
+  text-align: center;
+}
+
+.qrCodePanelActions {
+  display: flex;
+  gap: _.unit(3);
+  margin-top: _.unit(4);
+
+  /* Compact inline actions: let the button hug its (possibly long, translated) label. */
+  button {
+    width: auto;
+    min-width: unset;
+    white-space: nowrap;
+  }
+}
+
+.qrCodePanelCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: _.unit(3);
+  width: 200px;
+  height: 200px;
+}

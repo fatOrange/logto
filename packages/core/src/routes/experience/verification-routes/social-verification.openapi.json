@@ -52,7 +52,7 @@
       "post": {
         "operationId": "VerifySocialVerification",
         "summary": "Verify social verification",
-        "description": "Verify the social authorization response data and get the user's identity data from the social provider.",
+        "description": "Verify the social authorization response data and get the user's identity data from the social provider. For QR code sign-in capable connectors, the `connectorData` must be exactly `{ \"qrCodeSessionId\": \"<verificationId>\" }`; the session must have been confirmed by a qualifying WeChat scan event and is consumed atomically.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -62,7 +62,14 @@
                     "description": "The ID of the social verification record. Optional for Google one tap login, as it does not have a pre-created social verification record in session."
                   },
                   "connectorData": {
-                    "description": "Arbitrary data returned by the social provider to complete the verification process."
+                    "description": "Arbitrary data returned by the social provider to complete the verification process. For QR code sign-in capable connectors, only `{ \"qrCodeSessionId\": \"<verificationId>\" }` is accepted.",
+                    "type": "object",
+                    "properties": {
+                      "qrCodeSessionId": {
+                        "description": "Dev feature. The ID of the confirmed QR code session owned by the current interaction. Required (as the sole key of `connectorData`) only for QR code sign-in capable connectors.",
+                        "x-logto-dev-feature": true
+                      }
+                    }
                   }
                 }
               }
@@ -89,6 +96,9 @@
           },
           "404": {
             "description": "The social connector is not found."
+          },
+          "422": {
+            "description": "Dev features are disabled, or the connector does not support QR code sign-in."
           },
           "500": {
             "description": "Connector error. Failed to verify the social authorization response or fetch the user info from the social provider."

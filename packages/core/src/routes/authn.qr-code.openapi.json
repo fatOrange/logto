@@ -1,0 +1,69 @@
+{
+  "tags": [
+    {
+      "name": "Dev feature"
+    }
+  ],
+  "paths": {
+    "/api/authn/qr-code/{connectorId}": {
+      "get": {
+        "operationId": "VerifyQrCodeCallbackUrl",
+        "summary": "Verify QR code callback URL",
+        "description": "Public WeChat server URL validation endpoint for QR code capable social connectors. The connector verifies the request signature against its configured token and the verified `echostr` is returned as plain text. Invalid signatures are never acknowledged. Dev feature.",
+        "responses": {
+          "200": {
+            "description": "The verified echo string, returned as `text/plain`.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The connector is not found."
+          },
+          "422": {
+            "description": "Dev features are disabled, or the connector does not support QR code callbacks (including invalid signatures)."
+          }
+        }
+      },
+      "post": {
+        "operationId": "HandleQrCodeCallback",
+        "summary": "Handle QR code event callback",
+        "description": "Public WeChat event push endpoint for QR code capable social connectors. The raw XML body is verified (and decrypted in safe mode) by the connector; a qualifying SCAN or subscribe event atomically confirms the pending QR code session for the event's scene (first scan wins). All valid events are acknowledged with `success` as `text/plain`. Invalid signatures, app ID mismatches, and encryption mode mismatches are rejected and never acknowledged. Dev feature.",
+        "requestBody": {
+          "content": {
+            "application/xml": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The acknowledgment response, returned as `text/plain` (`success` for valid events).",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The connector is not found."
+          },
+          "400": {
+            "description": "The request payload is missing or malformed (e.g. no XML body)."
+          },
+          "422": {
+            "description": "Dev features are disabled, the connector does not support QR code callbacks, the signature or encryption mode is invalid, or the payload is malformed."
+          }
+        }
+      }
+    }
+  }
+}

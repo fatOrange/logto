@@ -40,6 +40,9 @@
           },
           "404": {
             "description": "The connector with the specified ID does not exist."
+          },
+          "501": {
+            "description": "The connector does not implement a redirect-based authorization flow (e.g. QR-code-only connectors)."
           }
         }
       }

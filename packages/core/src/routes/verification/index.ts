@@ -13,9 +13,12 @@ import {
 } from '@logto/schemas';
 import { z } from 'zod';
 
+import RequestError from '#src/errors/RequestError/index.js';
+import { isQrCodeConnectorMetadata } from '#src/libraries/verification-helpers/social-qr-code.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import { buildMessageRateGuard, withMessageRateGuard } from '#src/sentinel/message-rate-guard.js';
 import { assertFirstPartyClient } from '#src/utils/assert-first-party-client.js';
+import assertThat from '#src/utils/assert-that.js';
 
 import {
   buildVerificationRecordByIdAndType,
@@ -269,7 +272,7 @@ export default function verificationRoutes<T extends UserRouter>(
       response: z.object({
         verificationRecordId: z.string(),
       }),
-      status: [200, 400, 404, 422],
+      status: [200, 400, 404, 422, 501],
     }),
     async (ctx, next) => {
       const { connectorData, verificationRecordId } = ctx.guard.body;
@@ -280,6 +283,19 @@ export default function verificationRoutes<T extends UserRouter>(
         queries,
         libraries,
       });
+
+      // QR code sessions are browser-bound (interaction jti) and single-use; they are only
+      // consumable through the experience verify endpoint, never through the account binding
+      // API. A QR-only connector has no redirect flow either, so its ordinary verify path is
+      // always invalid here.
+      const connector = await tenantContext.libraries.socials.getConnector(
+        socialVerification.connectorId
+      );
+
+      assertThat(
+        !isQrCodeConnectorMetadata(connector.metadata),
+        new RequestError({ code: 'connector.not_implemented', status: 501 })
+      );
 
       await socialVerification.verify(ctx, tenantContext, connectorData, 'verificationRecord');
 

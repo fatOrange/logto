@@ -144,6 +144,11 @@ export const filterSocialConnectors = (socialConnectors?: ExperienceSocialConnec
         continue;
       }
 
+      // QR sign-in connectors (e.g. WeChat MP) are desktop-only: no mobile entry point.
+      if (isMobileDevice() && isQrCodeSignInConnector(connector)) {
+        continue;
+      }
+
       if (platform === ConnectorPlatform.Web || !connectorMap.get(target)) {
         connectorMap.set(target, connector);
         continue;
@@ -207,11 +212,15 @@ export const filterSocialConnectors = (socialConnectors?: ExperienceSocialConnec
 };
 
 /**
- * Social Connectors Filter Utility Methods used in preview mode only
+ * Social Connectors Filter Utility Methods used in preview mode only.
+ *
+ * `isMobile` reflects the previewed platform (sent by the console preview), not the device the
+ * preview iframe runs on, so QR-only connectors are hidden exactly like in the real flow.
  */
 export const filterPreviewSocialConnectors = (
   platform: ConnectorPlatform.Native | ConnectorPlatform.Web,
-  socialConnectors?: ExperienceSocialConnector[]
+  socialConnectors?: ExperienceSocialConnector[],
+  isMobile = isMobileDevice()
 ) => {
   if (!socialConnectors) {
     return [];
@@ -231,6 +240,11 @@ export const filterPreviewSocialConnectors = (
       const { platform, target } = connector;
 
       if (platform === ConnectorPlatform.Native) {
+        continue;
+      }
+
+      // QR sign-in connectors (e.g. WeChat MP) are desktop-only: no mobile entry point.
+      if (isMobile && isQrCodeSignInConnector(connector)) {
         continue;
       }
 
@@ -267,3 +281,47 @@ export const filterPreviewSocialConnectors = (
 };
 
 export const isAppleConnector = (target?: string) => target === 'apple';
+
+/** Polling interval (ms) for the inline QR sign-in status. */
+export const socialQrCodePollingInterval = 2000;
+
+/** Target of the WeChat MP (service account) QR sign-in connector. */
+export const wechatMpConnectorTarget = 'wechat-mp';
+
+/**
+ * Own-property type guard for the keys of a localized connector name. The name is a plain JSON
+ * object, so only its own keys (not inherited ones) are valid language tags.
+ */
+const isOwnLocalizedNameKey = (
+  language: string,
+  name: Pick<ExperienceSocialConnector, 'name'>['name']
+): language is keyof typeof name => Object.hasOwn(name, language);
+
+/**
+ * Resolve the display name of a social connector for the active UI language, falling back to
+ * English. `I18nPhrases` has no index signature, so the indexed lookup goes through an own-key
+ * `keyof` guard.
+ */
+export const getSocialConnectorName = (
+  name: Pick<ExperienceSocialConnector, 'name'>['name'],
+  language: string
+): string => {
+  const localized = isOwnLocalizedNameKey(language, name) ? name[language] : undefined;
+
+  return localized ?? name.en;
+};
+
+/**
+ * Check if the connector signs in through an inline QR code session instead of the standard
+ * authorization-uri redirect. Capability is published by the connector metadata.
+ */
+export const isQrCodeSignInConnector = (connector: {
+  readonly target: string;
+  readonly isQrCodeSupported?: boolean;
+}): boolean => connector.target === wechatMpConnectorTarget && connector.isQrCodeSupported === true;
+
+/**
+ * Authoritative mobile signal shared by the real sign-in flow (the same `body.mobile` class set
+ * by the pre-React script in `index.html` that backs `PageContext.platform`) and unit tests.
+ */
+export const isMobileDevice = (): boolean => document.body.classList.contains('mobile');

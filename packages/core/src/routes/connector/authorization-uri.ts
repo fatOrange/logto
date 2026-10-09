@@ -32,7 +32,7 @@ export default function connectorAuthorizationUriRoutes<T extends ManagementApiR
       params: object({ connectorId: string().min(1) }),
       body: object({ state: string(), redirectUri: string() }),
       response: object({ redirectTo: string().url() }),
-      status: [200, 400, 404],
+      status: [200, 400, 404, 501],
     }),
     async (ctx, next) => {
       const { connectorId } = ctx.guard.params;

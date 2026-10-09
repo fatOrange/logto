@@ -131,6 +131,43 @@ export type GetTokenResponseAndUserInfo = (
 
 export type GetAccessTokenByRefreshToken = (refreshToken: string) => Promise<TokenResponse>;
 
+/**
+ * Creates a provider-side QR code for the given scene value.
+ *
+ * @returns The QR code content URL (e.g. the `url` field returned by WeChat's
+ * `POST /cgi-bin/qrcode/create` API), which the client renders as a QR image. This is
+ * NOT a ticket or a QR image URL.
+ */
+export type CreateQrCode = (scene: string, expiresIn: number) => Promise<string>;
+
+/**
+ * The result of handling a provider QR code event callback (webhook).
+ *
+ * - `response`: The raw response body that should be sent back to the provider. It must
+ *   always be present, even when the event is not relevant (ack-only).
+ * - `scene`: The scene value extracted from a login-relevant event (e.g. WeChat `SCAN`
+ *   or `subscribe` events with a `qrscene_`-prefixed `EventKey`). Omitted for
+ *   non-login events.
+ * - `userInfo`: The authenticated user info associated with the scan event. Only
+ *   present when `scene` is present.
+ */
+export type QrCodeCallbackResult = { response: string; scene?: string; userInfo?: SocialUserInfo };
+
+/**
+ * Handles an inbound QR code callback request from the social provider.
+ *
+ * @param query The URL query parameters of the callback request (all values are strings).
+ * @param body The raw request body for POST requests. `undefined` for GET requests
+ * (e.g. the WeChat server URL validation challenge, whose `echostr` must be echoed back
+ * after the signature is verified).
+ * @remarks Must reject (throw) on any invalid signature, decryption failure or identity
+ * mismatch. Never acknowledge a request with an invalid signature.
+ */
+export type HandleQrCodeCallback = (
+  query: Record<string, unknown>,
+  body?: string
+) => Promise<QrCodeCallbackResult>;
+
 export type SocialConnector = BaseConnector<ConnectorType.Social> & {
   getAuthorizationUri: GetAuthorizationUri;
   getUserInfo: GetUserInfo;
@@ -148,6 +185,10 @@ export type SocialConnector = BaseConnector<ConnectorType.Social> & {
    * this function can be used to retrieve the access token by the refresh token.
    */
   getAccessTokenByRefreshToken?: GetAccessTokenByRefreshToken;
+  /** @see {@link CreateQrCode} */
+  createQrCode?: CreateQrCode;
+  /** @see {@link HandleQrCodeCallback} */
+  handleQrCodeCallback?: HandleQrCodeCallback;
   validateSamlAssertion?: ValidateSamlAssertion;
 };
 

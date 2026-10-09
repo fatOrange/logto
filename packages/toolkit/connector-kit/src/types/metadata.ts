@@ -48,6 +48,13 @@ export type SocialConnectorMetadata = {
    * Use this field to indicate whether the connector supports token storage.
    */
   isTokenStorageSupported?: boolean;
+  /**
+   * Indicates whether the connector supports QR code sign-in via
+   * {@link SocialConnector.createQrCode} and {@link SocialConnector.handleQrCodeCallback}.
+   * The sign-in experience renders an inline QR panel for such connectors instead of
+   * redirecting to the provider's authorization page.
+   */
+  isQrCodeSupported?: boolean;
 };
 
 export const socialConnectorMetadataGuard = z.object({
@@ -56,6 +63,7 @@ export const socialConnectorMetadataGuard = z.object({
   // Indicates custom connector that follows standard protocol. Currently supported standard connectors are OIDC, OAuth2, and SAML2
   isStandard: z.boolean().optional(),
   isTokenStorageSupported: z.boolean().optional(),
+  isQrCodeSupported: z.boolean().optional(),
 }) satisfies ToZodObject<SocialConnectorMetadata>;
 
 export type ConnectorMetadata = {

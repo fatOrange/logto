@@ -37,7 +37,20 @@
         },
         "responses": {
           "200": {
-            "description": "The created connector."
+            "description": "The created connector.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isQrCodeSupported": {
+                      "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                      "x-logto-dev-feature": true
+                    }
+                  }
+                }
+              }
+            }
           },
           "403": {
             "description": "The tenant has reached the maximum number of connectors."
@@ -59,7 +72,23 @@
         ],
         "responses": {
           "200": {
-            "description": "An array of connectors."
+            "description": "An array of connectors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "isQrCodeSupported": {
+                        "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                        "x-logto-dev-feature": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "The target only allows one connector to exist, but there are multiple connectors with this target."
@@ -73,7 +102,20 @@
         "description": "Get connector data by ID",
         "responses": {
           "200": {
-            "description": "The connector data."
+            "description": "The connector data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isQrCodeSupported": {
+                      "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                      "x-logto-dev-feature": true
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "Connector not found."
@@ -104,7 +146,20 @@
         },
         "responses": {
           "200": {
-            "description": "The updated connector."
+            "description": "The updated connector.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isQrCodeSupported": {
+                      "description": "Dev feature. Whether the connector supports QR code sign-in via a parameterized QR code and its event callback, rendered inline in the sign-in experience.",
+                      "x-logto-dev-feature": true
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid request body."
