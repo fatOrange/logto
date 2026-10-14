@@ -4,6 +4,7 @@ import {
 } from '@logto/schemas';
 import { object, string } from 'zod';
 
+import { EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 
@@ -48,6 +49,14 @@ function applicationSignInExperienceRoutes<T extends ManagementApiRouter>(
       } = ctx.guard;
 
       await findApplicationById(applicationId);
+
+      /**
+       * OneLayout (dev feature: Application sign-in layouts) — reject layout selection while
+       * developer features are disabled; the column stays null and apps keep the default layout.
+       */
+      if (body.layout && !EnvSet.values.isDevFeaturesEnabled) {
+        throw new RequestError({ code: 'request.feature_not_supported', status: 422 });
+      }
 
       const applicationSignInExperience =
         await safeFindSignInExperienceByApplicationId(applicationId);

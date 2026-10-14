@@ -1,6 +1,6 @@
 import type { LanguageTag } from '@logto/language-kit';
 import { languages as uiLanguageNameMapping } from '@logto/language-kit';
-import { Theme } from '@logto/schemas';
+import { type SignInLayout, Theme } from '@logto/schemas';
 import classNames from 'classnames';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,11 @@ type Props = {
   readonly isLivePreviewEntryInvisible?: boolean;
   readonly isPreviewIframeDisabled?: boolean;
   readonly signInExperience?: SignInExperiencePageManagedData;
+  /**
+   * Preview-only sign-in page layout, for the under-development Application sign-in layouts
+   * feature. It is forwarded to the preview iframe and never persisted.
+   */
+  readonly layout?: SignInLayout;
   readonly className?: string;
 };
 
@@ -30,6 +35,7 @@ function Preview({
   isLivePreviewEntryInvisible = false,
   isPreviewIframeDisabled = false,
   signInExperience,
+  layout,
   className,
 }: Props) {
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console' });
@@ -128,6 +134,7 @@ function Preview({
         mode={mode}
         language={language}
         signInExperience={signInExperience}
+        layout={layout}
         disabled={isPreviewIframeDisabled}
       />
     </div>

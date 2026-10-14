@@ -86,6 +86,25 @@
     }
   }
 
+  // OneLayout renders a 1280x900 wide viewport scaled uniformly into the same panel width.
+  &.web.oneLayoutWeb {
+    .deviceWrapper {
+      height: _screenSize.$one-layout-web-height;
+
+      .device {
+        iframe {
+          width: _screenSize.$one-layout-web-iframe-width;
+          height: _screenSize.$one-layout-web-iframe-height;
+          transform:
+            scaleX(_screenSize.$one-layout-web-scale-x)
+            scaleY(_screenSize.$one-layout-web-scale-y);
+          margin-inline-start: _screenSize.$one-layout-web-to-wrapper-offset-x;
+          margin-top: _screenSize.$one-layout-web-to-wrapper-offset-y;
+        }
+      }
+    }
+  }
+
   &.disabled {
     background: url('../../assets/images/blur-preview.svg') 0 0 / 100% auto no-repeat;
   }

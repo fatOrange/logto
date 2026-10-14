@@ -1,32 +1,45 @@
+import { experience, SignInLayout } from '@logto/schemas';
 import classNames from 'classnames';
-import { useContext } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useMatch } from 'react-router-dom';
 
-import PageContext from '@/Providers/PageContextProvider/PageContext';
 import usePlatform from '@/hooks/use-platform';
-import LogtoSignature from '@/shared/components/LogtoSignature';
+import useSignInLayout from '@/hooks/use-sign-in-layout';
 import { layoutClassNames } from '@/utils/consts';
 
 import CustomContent from './CustomContent';
 import styles from './index.module.scss';
 
 const AppLayout = () => {
-  const { experienceSettings, theme } = useContext(PageContext);
   const { isMobile } = usePlatform();
-  const hideLogtoBranding = experienceSettings?.hideLogtoBranding === true;
+  const layout = useSignInLayout();
+  const signInMatch = useMatch(`/${experience.routes.signIn}`);
+  const registerMatch = useMatch(`/${experience.routes.register}`);
+  /**
+   * OneLayout (dev-only feature: Application sign-in layouts) replaces the outer floating card
+   * with its own composition on the two first-screen routes; all other routes keep the default
+   * card shell.
+   */
+  const isOneLayoutFirstScreen =
+    layout === SignInLayout.OneLayout && Boolean(signInMatch ?? registerMatch);
 
   return (
     <div className={styles.viewBox}>
-      <div className={classNames(styles.container, layoutClassNames.pageContainer)}>
+      <div
+        className={classNames(
+          styles.container,
+          isOneLayoutFirstScreen && styles.containerPlain,
+          layoutClassNames.pageContainer
+        )}
+      >
         {!isMobile && <CustomContent className={layoutClassNames.customContent} />}
-        <main className={classNames(styles.main, layoutClassNames.mainContent)}>
-          <Outlet />
-          {!hideLogtoBranding && (
-            <LogtoSignature
-              className={classNames(styles.signature, layoutClassNames.signature)}
-              theme={theme}
-            />
+        <main
+          className={classNames(
+            styles.main,
+            isOneLayoutFirstScreen && styles.mainPlain,
+            layoutClassNames.mainContent
           )}
+        >
+          <Outlet />
         </main>
       </div>
     </div>

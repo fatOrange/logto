@@ -173,6 +173,9 @@ const application_details = {
     brand_color_dark: '브랜드 색상 (다크)',
     terms_of_use_url: '애플리케이션 이용 약관 URL',
     privacy_policy_url: '애플리케이션 개인정보 보호정책 URL',
+    layout: '로그인 페이지 레이아웃',
+    layout_description: '이 애플리케이션의 로그인 및 등록 페이지 레이아웃을 선택하세요.',
+    layout_default: '기본값',
   },
   permissions: {
     name: '권한',

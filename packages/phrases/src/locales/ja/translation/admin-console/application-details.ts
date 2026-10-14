@@ -178,6 +178,9 @@ const application_details = {
     brand_color_dark: 'ブランドカラー（ダーク）',
     terms_of_use_url: 'アプリケーション利用規約 URL',
     privacy_policy_url: 'アプリケーションプライバシーポリシー URL',
+    layout: 'ログインページのレイアウト',
+    layout_description: 'このアプリケーションのログインおよび登録ページのレイアウトを選択します。',
+    layout_default: 'デフォルト',
   },
   permissions: {
     name: '権限',

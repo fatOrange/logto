@@ -1,0 +1,98 @@
+@use '@/shared/scss/underscore' as _;
+
+/* OneLayout shell (dev-only feature: Application sign-in layouts). */
+
+.page {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: _.unit(6) _.unit(5) _.unit(4);
+  /* Match branded sign-in pages (e.g. /signin) light background: #fcfcfc. */
+  background: #fcfcfc;
+
+  html[data-theme='dark'] & {
+    background: var(--color-bg-body);
+  }
+}
+
+.formColumn {
+  @include _.flex-column(normal, center);
+  width: min(440px, 100%);
+}
+
+.header {
+  width: 100%;
+  margin-bottom: _.unit(6);
+}
+
+.card {
+  width: 100%;
+  @include _.flex-column(normal, normal);
+  border: 1px solid var(--color-line-border);
+  border-radius: 18px;
+  background: var(--color-bg-float);
+  padding: _.unit(8);
+}
+
+/* Inner wrapper of the card content. Exists as the view-transition pairing element for the card
+   children (`[data-vt='card-content']` in src/scss/view-transition.scss) and keeps the card's
+   child spacing contract (flex column, last child margin cleanup) unchanged. */
+.cardContent {
+  @include _.flex-column(normal, normal);
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.footer {
+  width: 100%;
+  margin-top: _.unit(2);
+  text-align: center;
+}
+
+.illustrationPanel {
+  display: none;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  margin: 16px;
+  min-height: 320px;
+  background: var(--color-bg-layer-2);
+}
+
+.illustration {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Split two-column shell: form column and decorative illustration panel. */
+@media only screen and (min-width: 768px) {
+  .page.split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    padding: 0;
+
+    .formColumn {
+      justify-self: center;
+      padding: _.unit(12) _.unit(6) _.unit(8);
+    }
+
+    .illustrationPanel {
+      display: block;
+    }
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .card {
+    border-radius: 24px;
+    padding: 48px;
+  }
+}

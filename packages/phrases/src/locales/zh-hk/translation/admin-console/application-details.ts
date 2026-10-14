@@ -165,6 +165,9 @@ const application_details = {
     brand_color_dark: '品牌顏色（深色模式）',
     terms_of_use_url: '應用程式使用條款網址',
     privacy_policy_url: '應用程式隱私政策網址',
+    layout: '登入頁面佈局',
+    layout_description: '選擇此應用程式的登入及註冊頁面佈局。',
+    layout_default: '預設',
   },
   permissions: {
     name: '權限',

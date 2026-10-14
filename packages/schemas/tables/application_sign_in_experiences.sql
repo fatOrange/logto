@@ -8,6 +8,8 @@ create table application_sign_in_experiences (
     references applications (id) on update cascade on delete cascade,
   color jsonb /* @use PartialColor */ not null default '{}'::jsonb,
   branding jsonb /* @use Branding */ not null default '{}'::jsonb,
+  /** The sign-in page layout selected for this application. Null means the default layout. */
+  layout varchar(32) /* @use SignInLayout */,
   custom_css text,
   terms_of_use_url varchar(2048),
   privacy_policy_url varchar(2048),

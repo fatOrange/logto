@@ -179,6 +179,9 @@ const application_details = {
     brand_color_dark: 'Цвет бренда (темный)',
     terms_of_use_url: 'URL условий использования приложения',
     privacy_policy_url: 'URL политики конфиденциальности приложения',
+    layout: 'Макет страницы входа',
+    layout_description: 'Выберите макет страниц входа и регистрации для этого приложения.',
+    layout_default: 'По умолчанию',
   },
   permissions: {
     name: 'Разрешения',

@@ -1,0 +1,209 @@
+/*
+ * OneLayout sign-in ↔ register view transition (dev-only feature: Application sign-in layouts).
+ *
+ * Adapted from the WorkOS Hosted AuthKit reference (localhost:8764/signin, signin.css:550-637,
+ * originally https://signin.oneprep.xyz). OneLayout-scoped marker mapping:
+ *
+ *   reference marker            → Logto marker
+ *   .ak-background              → [data-vt="background"]         (OneLayout `.page`)
+ *   .ak-content                 → [data-vt="page-content"]       (`.formColumn`)
+ *   .ak-header                  → .logto-vt-heading              (BrandingHeader)
+ *   .ak-card                    → [data-vt="card"]               (`.card`)
+ *   .ak-card-content            → [data-vt="card-content"]       (`.cardContent` wrapper)
+ *   .ak-email-field             → form:has(button[name=submit])  (identifier/password form)
+ *   #submit-btn                 → button[name=submit]            (primary submit button)
+ *   .ak-separator               → .logto-vt-separator            ("OR" divider)
+ *   .ak-providers               → .logto-vt-oauth-methods        (social sign-in list)
+ *   .ak-signup-row              → .logto-vt-switch-row           (account switch row)
+ *   small.ak-footer             → .logto-vt-legal-copy           (legal links footer)
+ *   .ak-illustration-panel      → [data-vt="secondary-panel"]    (illustration panel)
+ *
+ * Names are assigned ONLY while `html[data-one-layout-transition]` is present (set by
+ * `use-one-layout-view-transition` around `document.startViewTransition`), so nothing is
+ * snapshot-named during normal page loads or in the default layout. The wrapper/child marker
+ * classes also only apply on the OneLayout branches, keeping other layouts inert twice over.
+ */
+
+/* stylelint-disable selector-class-pattern -- logto-vt-* marker classes are the cross-file
+   contract consumed by use-one-layout-view-transition.ts and the pages; the repo class pattern
+   forbids hyphens, which these global (non-CSS-module) markers need for readability. */
+
+/* ---------- name assignment, scoped to the active transition ----------
+   Shell regions carry explicit `data-vt` markers on OneLayout-owned markup; card children carry
+   the `.logto-vt-*` classes (or the structural form/CTA selectors below) from the pages. */
+html[data-one-layout-transition] [data-vt='background'] {
+  view-transition-name: logto-vt-background;
+}
+
+html[data-one-layout-transition] [data-vt='page-content'] {
+  view-transition-name: logto-vt-page-content;
+}
+
+html[data-one-layout-transition] .logto-vt-heading {
+  view-transition-name: logto-vt-heading;
+}
+
+html[data-one-layout-transition] [data-vt='card'] {
+  view-transition-name: logto-vt-card;
+}
+
+html[data-one-layout-transition] [data-vt='card-content'] {
+  view-transition-name: logto-vt-card-content;
+}
+
+html[data-one-layout-transition] .logto-vt-separator {
+  view-transition-name: logto-vt-separator;
+}
+
+html[data-one-layout-transition] .logto-vt-oauth-methods {
+  view-transition-name: logto-vt-oauth-methods;
+}
+
+html[data-one-layout-transition] .logto-vt-switch-row {
+  view-transition-name: logto-vt-switch-row;
+}
+
+html[data-one-layout-transition] [data-vt='legal-copy'] {
+  view-transition-name: logto-vt-legal-copy;
+}
+
+html[data-one-layout-transition] [data-vt='secondary-panel'] {
+  view-transition-name: logto-vt-secondary-panel;
+}
+
+/* Structural pairings for elements that cannot take an explicit marker class: the primary CTA
+   (shared Button renders no stable class hook) and the active identifier/password form (other
+   OneLayout children — social list, checkbox, captcha, passkey button — never render a form).
+   Scoped to the OneLayout card content so no other layout's submit button is ever named. */
+html[data-one-layout-transition] [data-vt='card-content'] form:has(button[name='submit']) {
+  view-transition-name: logto-vt-form;
+}
+
+html[data-one-layout-transition] [data-vt='card-content'] button[name='submit'] {
+  view-transition-name: logto-vt-cta;
+}
+
+/* Geometry-morphing pairs; snapshots cross-fade with the UA default. The reference also carries
+   the class on the instant-swap text pairs (heading/cta/switch-row) — translated verbatim. */
+html[data-one-layout-transition] .logto-vt-heading,
+html[data-one-layout-transition] [data-vt='card'],
+html[data-one-layout-transition] [data-vt='card-content'],
+html[data-one-layout-transition] [data-vt='card-content'] form:has(button[name='submit']),
+html[data-one-layout-transition] [data-vt='card-content'] button[name='submit'],
+html[data-one-layout-transition] .logto-vt-separator,
+html[data-one-layout-transition] .logto-vt-oauth-methods,
+html[data-one-layout-transition] .logto-vt-switch-row,
+html[data-one-layout-transition] [data-vt='secondary-panel'] {
+  /* stylelint-disable-next-line property-no-unknown -- valid CSS, stylelint data lags the spec */
+  view-transition-class: logto-vt-step-morph;
+}
+
+/* ---------- timing (verbatim from the reference) ----------
+   Custom view-transition names inside the pseudo functions are valid CSS; stylelint sees them
+   as unknown type selectors, so the rule is off for this section only. */
+/* stylelint-disable selector-type-no-unknown */
+::view-transition-group(*) {
+  animation-duration: 0.24s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-group(logto-vt-secondary-panel) {
+  animation-timing-function: step-end;
+}
+
+::view-transition-old(logto-vt-card-content),
+::view-transition-old(logto-vt-secondary-panel) {
+  animation: logto-vt-step-fade-out 0.1s ease-out both;
+}
+
+::view-transition-new(logto-vt-card-content),
+::view-transition-new(logto-vt-secondary-panel) {
+  animation: logto-vt-step-fade-in 0.1s ease-out 0.24s both;
+}
+
+html[data-one-layout-transition]::view-transition-old(logto-vt-background) {
+  /* Reference bundle keeps the outgoing background painted in steady-state scenes, and fades it
+     with the layout-change scenes (sign-in ↔ sign-up); the marker guard wins that cascade here. */
+  animation: logto-vt-step-fade-out 0.1s ease-out both;
+}
+
+html[data-one-layout-transition]::view-transition-group(logto-vt-background) {
+  /* Layout-change scene: the background snaps to its end position (reference: step-end). */
+  animation-timing-function: step-end;
+}
+
+::view-transition-new(logto-vt-background) {
+  animation: logto-vt-step-fade-in 0.1s ease-out 0.24s both;
+}
+
+::view-transition-new(logto-vt-background),
+::view-transition-old(logto-vt-background) {
+  object-fit: cover;
+}
+
+/* Non-morphing wrappers: their groups never animate; snapshots swap instantly so only the
+   named children inside carry the motion (reference: ak-page-content / ak-legal-copy). */
+::view-transition-group(logto-vt-legal-copy),
+::view-transition-group(logto-vt-page-content) {
+  animation: none;
+}
+
+::view-transition-old(logto-vt-legal-copy),
+::view-transition-old(logto-vt-page-content) {
+  animation: none;
+  opacity: 0%;
+}
+
+::view-transition-new(logto-vt-legal-copy),
+::view-transition-new(logto-vt-page-content) {
+  animation: none;
+  opacity: 100%;
+}
+
+/* Text snaps while the box morphs (reference: ak-cta / ak-footer / ak-heading). */
+::view-transition-old(logto-vt-cta),
+::view-transition-old(logto-vt-switch-row),
+::view-transition-old(logto-vt-heading) {
+  animation: none;
+  opacity: 0%;
+}
+
+::view-transition-new(logto-vt-cta),
+::view-transition-new(logto-vt-switch-row),
+::view-transition-new(logto-vt-heading) {
+  animation: none;
+  opacity: 100%;
+}
+
+::view-transition-old(.logto-vt-step-morph),
+::view-transition-new(.logto-vt-step-morph) {
+  height: 100%;
+}
+
+/* stylelint-enable selector-type-no-unknown */
+
+@keyframes logto-vt-step-fade-in {
+  0% {
+    opacity: 0%;
+  }
+}
+
+@keyframes logto-vt-step-fade-out {
+  to {
+    opacity: 0%;
+  }
+}
+
+/* ---------- reduced motion (reference neutralizes every transition pseudo-element) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  /* Scoped to the OneLayout transition marker: html[data-one-layout-transition] raises
+     specificity to (0,1,1), matching the named-pseudo rules above so this later block wins
+     without `!important`, and no other layout's transitions are touched. */
+  html[data-one-layout-transition]::view-transition-group(*),
+  html[data-one-layout-transition]::view-transition-image-pair(*),
+  html[data-one-layout-transition]::view-transition-new(*),
+  html[data-one-layout-transition]::view-transition-old(*) {
+    animation: none;
+    transition: none;
+  }
+}

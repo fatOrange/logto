@@ -164,6 +164,9 @@ const application_details = {
     brand_color_dark: '品牌颜色（深色）',
     terms_of_use_url: '应用程序使用条款 URL',
     privacy_policy_url: '应用程序隐私政策 URL',
+    layout: '登录页布局',
+    layout_description: '选择此应用程序的登录和注册页面布局。',
+    layout_default: '默认',
   },
   permissions: {
     name: '权限',

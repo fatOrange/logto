@@ -12,6 +12,15 @@
   @include _.flex_column(center, center);
 }
 
+// Keep OneLayout's backdrop stable while its named page snapshot fades during account switching.
+.containerPlain {
+  background: #fcfcfc;
+
+  html[data-theme='dark'] & {
+    background: var(--color-bg-body);
+  }
+}
+
 .main {
   @include _.flex_column;
 }
@@ -29,14 +38,24 @@
     background: var(--color-bg-body);
   }
 
-  .signature {
-    margin: _.unit(10) 0 _.unit(2);
+  // OneLayout (dev-only feature: Application sign-in layouts) owns its own paddings and background.
+  .mainPlain {
+    padding: 0;
+    background: none;
   }
 }
 
 :global(body.desktop) {
   .container {
     padding: _.unit(5);
+  }
+
+  /*
+   * OneLayout (dev-only feature: Application sign-in layouts) replaces the outer floating card
+   * with its own composition; the shell drops its card chrome and paddings.
+   */
+  .containerPlain {
+    padding: 0;
   }
 
   .main {
@@ -49,12 +68,15 @@
     box-shadow: var(--color-shadow-2);
   }
 
-  .signature {
-    position: absolute;
-    bottom: 0;
-    transform: translateY(calc(100% + _.unit(7)));
-    // Have to use padding instead of margin. Overflow margin spacing will be ignored by the browser.
-    padding-bottom: _.unit(7);
+  .mainPlain {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+    align-self: stretch;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
 
   @media only screen and (max-width: 580px) {

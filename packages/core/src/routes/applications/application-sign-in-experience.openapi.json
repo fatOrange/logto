@@ -4,6 +4,20 @@
       "put": {
         "summary": "Update application level sign-in experience",
         "description": "Update application level sign-in experience for the specified application. Create a new sign-in experience if it does not exist. \n - Only branding properties and terms links customization is supported for now. \n\n - Only third-party applications can be customized for now. \n\n - Application level sign-in experience customization is optional, if provided, it will override the default branding and terms links.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "layout": {
+                    "description": "Dev feature. The sign-in page layout for this application. Omit the property to keep the currently saved layout unchanged; send `null` to reset to the default layout (an application without saved sign-in experience settings effectively uses `null`). Available to every application type; only effective when developer features are enabled (non-null values are rejected with 422 otherwise).",
+                    "x-logto-dev-feature": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The application's sign-in experience was successfully updated."
@@ -13,6 +27,9 @@
           },
           "404": {
             "description": "The application does not exist."
+          },
+          "422": {
+            "description": "The layout value is not supported (developer features are disabled)."
           }
         }
       },
@@ -21,7 +38,19 @@
         "description": "Get application level sign-in experience for a given application. \n - Only branding properties and terms links customization is supported for now. \n\n - Only third-party applications can have the sign-in experience customization for now.",
         "responses": {
           "200": {
-            "description": "Returns the application's application level sign-in experience."
+            "description": "Returns the application's application level sign-in experience.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "layout": {
+                      "description": "Dev feature. The sign-in page layout selected for this application; `null` means the default layout.",
+                      "x-logto-dev-feature": true
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "The application does not exist or the application level sign-in experience does not exist."

@@ -1,5 +1,9 @@
 # @logto/account
 
+## Unreleased
+
+- remove the “Powered by Logto” signature from Account Center pages and footers
+
 ## 0.7.0
 
 ### Minor Changes

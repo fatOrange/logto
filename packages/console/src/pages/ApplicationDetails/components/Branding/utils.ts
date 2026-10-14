@@ -1,8 +1,16 @@
-import { type ApplicationSignInExperience } from '@logto/schemas';
+import {
+  type ApplicationSignInExperience,
+  type CreateApplicationSignInExperience,
+} from '@logto/schemas';
 
 import { removeFalsyValues } from '@/utils/object';
 
-export type ApplicationSignInExperienceForm = ApplicationSignInExperience & {
+export type ApplicationSignInExperienceForm = Omit<ApplicationSignInExperience, 'layout'> & {
+  /**
+   * The app-level sign-in page layout choice. `undefined` means the field is absent (Console dev
+   * features disabled) and saves must omit it; `null` means the default layout (cleared choice).
+   */
+  layout?: ApplicationSignInExperience['layout'];
   /**
    * Used to determine if the application enables branding for the app-level sign-in experience.
    * Only effective for non-third-party applications.
@@ -17,11 +25,24 @@ export type ApplicationSignInExperienceForm = ApplicationSignInExperience & {
  **/
 export const formatFormToSubmitData = (
   data: ApplicationSignInExperienceForm
-): Omit<ApplicationSignInExperience, 'applicationId' | 'tenantId'> => {
-  const { branding, color, customCss, applicationId, tenantId, isBrandingEnabled, ...rest } = data;
+): Omit<CreateApplicationSignInExperience, 'applicationId' | 'tenantId'> => {
+  const {
+    branding,
+    color,
+    customCss,
+    applicationId,
+    tenantId,
+    isBrandingEnabled,
+    layout,
+    ...rest
+  } = data;
 
   return {
     ...rest,
+    // The sign-in layout choice is independent of the app-level branding switch. Preserve it on
+    // every save, including an explicit `null` for the default layout. When the field is absent
+    // (dev features disabled or an older API response), omit it so the saved value is untouched.
+    ...(layout !== undefined && { layout }),
     ...(isBrandingEnabled
       ? { color, branding: removeFalsyValues(branding), customCss }
       : { color: {}, branding: {}, customCss: '' }),

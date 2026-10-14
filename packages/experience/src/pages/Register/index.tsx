@@ -1,9 +1,17 @@
-import { AgreeToTermsPolicy, experience, ExtraParamsKey, SignInMode } from '@logto/schemas';
+import {
+  AgreeToTermsPolicy,
+  experience,
+  ExtraParamsKey,
+  SignInLayout,
+  SignInMode,
+} from '@logto/schemas';
+import classNames from 'classnames';
 import { useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 
 import LandingPageLayout from '@/Layout/LandingPageLayout';
+import OneLayout from '@/Layout/OneLayout';
 import SingleSignOnFormModeContextProvider from '@/Providers/SingleSignOnFormModeContextProvider';
 import SingleSignOnFormModeContext from '@/Providers/SingleSignOnFormModeContextProvider/SingleSignOnFormModeContext';
 import Divider from '@/components/Divider';
@@ -14,8 +22,11 @@ import SocialSignInList from '@/containers/SocialSignInList';
 import TermsAndPrivacyCheckbox from '@/containers/TermsAndPrivacyCheckbox';
 import TermsAndPrivacyLinks from '@/containers/TermsAndPrivacyLinks';
 import useNavigateWithPreservedSearchParams from '@/hooks/use-navigate-with-preserved-search-params';
+import useOneLayoutViewTransition from '@/hooks/use-one-layout-view-transition';
 import { useSieMethods } from '@/hooks/use-sie';
+import useSignInLayout from '@/hooks/use-sign-in-layout';
 import useTerms from '@/hooks/use-terms';
+import { oneLayoutTransitionClassNames } from '@/utils/consts';
 
 import ErrorPage from '../ErrorPage';
 
@@ -28,6 +39,12 @@ const RegisterFooter = () => {
   const { termsValidation, agreeToTermsPolicy } = useTerms();
   const navigate = useNavigateWithPreservedSearchParams();
   const [params] = useSearchParams();
+  const { handleAccountSwitchClick } = useOneLayoutViewTransition();
+  /**
+   * OneLayout (dev-only feature: Application sign-in layouts) presents the account switch below
+   * the social sign-in list; the default layout keeps the existing order.
+   */
+  const isOneLayout = useSignInLayout() === SignInLayout.OneLayout;
 
   const { showSingleSignOnForm } = useContext(SingleSignOnFormModeContext);
 
@@ -81,8 +98,8 @@ const RegisterFooter = () => {
         )
       }
       {
-        // SignIn footer
-        signInMode === SignInMode.SignInAndRegister && signInMethods.length > 0 && (
+        // SignIn footer (rendered below the social list in OneLayout)
+        !isOneLayout && signInMode === SignInMode.SignInAndRegister && signInMethods.length > 0 && (
           <div className={styles.createAccount}>
             {t('description.have_account')} <TextLink replace to="/sign-in" text="action.sign_in" />
           </div>
@@ -92,9 +109,33 @@ const RegisterFooter = () => {
         // Social sign-in methods
         signUpMethods.length > 0 && socialConnectors.length > 0 && (
           <>
-            <Divider label="description.or" className={styles.divider} />
-            <SocialSignInList socialConnectors={socialConnectors} className={styles.main} />
+            <Divider
+              label="description.or"
+              className={classNames(styles.divider, oneLayoutTransitionClassNames.separator)}
+            />
+            <SocialSignInList
+              socialConnectors={socialConnectors}
+              className={classNames(styles.main, oneLayoutTransitionClassNames.oauthMethods)}
+            />
           </>
+        )
+      }
+      {
+        // OneLayout presents the account switch below the social sign-in methods
+        isOneLayout && signInMode === SignInMode.SignInAndRegister && signInMethods.length > 0 && (
+          <div
+            className={classNames(styles.createAccount, oneLayoutTransitionClassNames.switchRow)}
+          >
+            {t('description.have_account')}{' '}
+            <TextLink
+              replace
+              to="/sign-in"
+              text="action.sign_in"
+              onClick={(event) => {
+                handleAccountSwitchClick(event, '/sign-in');
+              }}
+            />
+          </div>
         )
       }
     </>
@@ -104,6 +145,7 @@ const RegisterFooter = () => {
 const Register = () => {
   const { signUpMethods, socialConnectors, signInMode } = useSieMethods();
   const { agreeToTermsPolicy } = useTerms();
+  const layout = useSignInLayout();
 
   if (!signInMode) {
     return <ErrorPage />;
@@ -113,8 +155,8 @@ const Register = () => {
     return <Navigate to="/sign-in" />;
   }
 
-  return (
-    <LandingPageLayout title="description.create_your_account">
+  const cardContent = (
+    <>
       <GoogleOneTap context="signup" />
       <SingleSignOnFormModeContextProvider>
         {signUpMethods.length > 0 && (
@@ -130,11 +172,27 @@ const Register = () => {
           </>
         )}
         <RegisterFooter />
-        {agreeToTermsPolicy === AgreeToTermsPolicy.Automatic && (
-          <TermsAndPrivacyLinks className={styles.terms} />
-        )}
       </SingleSignOnFormModeContextProvider>
       {/* Hide footer elements when showing Single Sign On form */}
+    </>
+  );
+
+  const termsContent =
+    agreeToTermsPolicy === AgreeToTermsPolicy.Automatic ? (
+      <TermsAndPrivacyLinks className={styles.terms} />
+    ) : null;
+
+  if (layout === SignInLayout.OneLayout) {
+    // Reference sign-up: centered card without the illustration panel, legal text outside the card.
+    return (
+      <OneLayout title="description.create_your_account" card={cardContent} footer={termsContent} />
+    );
+  }
+
+  return (
+    <LandingPageLayout title="description.create_your_account">
+      {cardContent}
+      {termsContent}
     </LandingPageLayout>
   );
 };

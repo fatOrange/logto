@@ -178,6 +178,9 @@ const application_details = {
     brand_color_dark: 'Kolor marki (ciemny)',
     terms_of_use_url: 'Adres URL warunków użytkowania aplikacji',
     privacy_policy_url: 'Adres URL polityki prywatności aplikacji',
+    layout: 'Układ strony logowania',
+    layout_description: 'Wybierz układ stron logowania i rejestracji dla tej aplikacji.',
+    layout_default: 'Domyślny',
   },
   permissions: {
     name: 'Uprawnienia',

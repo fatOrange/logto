@@ -16,8 +16,6 @@ export const layoutClassNames = Object.freeze({
   cardContainer: 'logto_ac-card-container',
   /** Card-style `<main>` inside the card container. */
   cardMain: 'logto_ac-card-main',
-  /** Logto signature / branding footer. */
-  signature: 'logto_ac-signature',
   /** Top-level page header (logo + app name bar). */
   pageHeader: 'logto_ac-page-header',
   /** User menu (avatar + dropdown) on the right side of the page header. */

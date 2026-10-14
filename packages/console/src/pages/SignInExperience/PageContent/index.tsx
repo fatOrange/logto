@@ -1,6 +1,7 @@
 import {
   ConnectorType,
   ForgotPasswordMethod,
+  SignInLayout,
   type AccountCenter as AccountCenterConfig,
   type SignInExperience,
 } from '@logto/schemas';
@@ -13,6 +14,7 @@ import { useParams } from 'react-router-dom';
 
 import SubmitFormChangesActionBar from '@/components/SubmitFormChangesActionBar';
 import UnsavedChangesAlertModal from '@/components/UnsavedChangesAlertModal';
+import { isDevFeaturesEnabled } from '@/consts/env';
 import ConfirmModal from '@/ds-components/ConfirmModal';
 import TabNav, { TabNavItem } from '@/ds-components/TabNav';
 import useApi from '@/hooks/use-api';
@@ -96,6 +98,15 @@ function PageContent({ data, onSignInExperienceUpdated, onAccountCenterUpdated }
   const hasPasswordMethod = formData.signIn.methods.some((method) => method.password);
 
   const previewConfigs = usePreviewConfigs(formData, isDirty, data);
+
+  /**
+   * Preview the OneLayout sign-in shell on the branding tab.
+   *
+   * Part of the under-development Application sign-in layouts feature: the experience side also
+   * requires dev features to honor the layout, and the persisted layout lives on the application
+   * (see the application details branding tab) instead of the tenant.
+   */
+  const shouldPreviewOneLayout = tab === SignInExperienceTab.Branding && isDevFeaturesEnabled;
 
   const saveData = useCallback(async () => {
     setIsSaving(true);
@@ -272,6 +283,7 @@ function PageContent({ data, onSignInExperienceUpdated, onAccountCenterUpdated }
               <Preview
                 isLivePreviewDisabled={isDirty}
                 signInExperience={previewConfigs}
+                layout={shouldPreviewOneLayout ? SignInLayout.OneLayout : undefined}
                 isPreviewIframeDisabled={Boolean(data.customUiAssets)}
                 className={styles.preview}
               />

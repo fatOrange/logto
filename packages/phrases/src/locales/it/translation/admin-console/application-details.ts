@@ -180,6 +180,10 @@ const application_details = {
     brand_color_dark: 'Colore del marchio (scuro)',
     terms_of_use_url: "URL termini d'uso dell'applicazione",
     privacy_policy_url: "URL politica sulla privacy dell'applicazione",
+    layout: 'Layout della pagina di accesso',
+    layout_description:
+      'Scegli il layout delle pagine di accesso e registrazione per questa applicazione.',
+    layout_default: 'Predefinito',
   },
   permissions: {
     name: 'Autorizzazioni',

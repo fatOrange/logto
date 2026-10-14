@@ -174,6 +174,9 @@ const application_details = {
     brand_color_dark: 'Brand color (dark)',
     terms_of_use_url: 'Application terms of use URL',
     privacy_policy_url: 'Application privacy policy URL',
+    layout: 'Login page layout',
+    layout_description: 'Choose the login and registration page layout for this application.',
+    layout_default: 'Default',
   },
   permissions: {
     name: 'Permissions',

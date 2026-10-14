@@ -177,6 +177,9 @@ const application_details = {
     brand_color_dark: 'Marka rengi (koyu)',
     terms_of_use_url: 'Kullanım Koşulları URLsi',
     privacy_policy_url: 'Gizlilik Politikası URLsi',
+    layout: 'Oturum açma sayfası düzeni',
+    layout_description: 'Bu uygulama için oturum açma ve kayıt sayfalarının düzenini seçin.',
+    layout_default: 'Varsayılan',
   },
   permissions: {
     name: 'İzinler',

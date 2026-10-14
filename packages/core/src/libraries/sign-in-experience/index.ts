@@ -8,6 +8,7 @@ import type {
   LanguageInfo,
   PartialColor,
   SignInExperience,
+  SignInLayout,
   SsoConnectorMetadata,
 } from '@logto/schemas';
 import { adminTenantId, ConnectorType, ForgotPasswordMethod, TenantTag } from '@logto/schemas';
@@ -52,7 +53,11 @@ export const getForgotPasswordAvailability = (
   };
 };
 
-type SignInExperienceOverride = Partial<Omit<SignInExperience, 'color'> & { color: PartialColor }>;
+type SignInExperienceOverride = Partial<
+  Omit<SignInExperience, 'color'> & { color: PartialColor }
+> & {
+  layout?: SignInLayout;
+};
 
 export const createSignInExperienceLibrary = (
   tenantId: string,
@@ -172,7 +177,18 @@ export const createSignInExperienceLibrary = (
     };
   };
 
-  /** Get the branding and color from the app sign-in experience if it is not a third-party app. */
+  /**
+   * Get the overrides from the app sign-in experience.
+   *
+   * Branding, color, and custom CSS only apply to first-party applications; third-party
+   * applications must keep the tenant branding on shared pages such as consent. The layout
+   * choice however is available to every application with a sign-in page (including
+   * third-party ones) and flows through an independent path below.
+   *
+   * The layout itself is only exposed while developer features are enabled (dev feature:
+   * Application sign-in layouts): with the feature disabled, saved values are ignored entirely
+   * and applications render the default layout.
+   */
   const findApplicationSignInExperience = async (
     appId?: string
   ): Promise<SignInExperienceOverride> => {
@@ -182,16 +198,19 @@ export const createSignInExperienceLibrary = (
 
     const found = await safeFindSignInExperienceByApplicationId(appId);
 
-    const { isThirdParty, branding, color, customCss } = found ?? {};
+    const { isThirdParty, branding, color, customCss, layout } = found ?? {};
 
     if (isThirdParty) {
-      return {};
+      return {
+        ...(EnvSet.values.isDevFeaturesEnabled && layout && { layout }),
+      };
     }
 
     return {
       ...(branding && { branding }),
       ...(color && { color }),
       ...(customCss && { customCss }),
+      ...(EnvSet.values.isDevFeaturesEnabled && layout && { layout }),
     };
   };
 

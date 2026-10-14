@@ -4,6 +4,7 @@ export * from './logs.js';
 export * from './oidc-module.js';
 export * from './phrases.js';
 export * from './sign-in-experience.js';
+export * from './sign-in-layout.js';
 export * from './sentinel.js';
 export * from './users.js';
 export * from './sso-connector.js';

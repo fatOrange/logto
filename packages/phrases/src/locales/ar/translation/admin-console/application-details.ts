@@ -174,6 +174,9 @@ const application_details = {
     brand_color_dark: 'لون العلامة التجارية (داكن)',
     terms_of_use_url: 'عنوان URL لشروط استخدام التطبيق',
     privacy_policy_url: 'عنوان URL لسياسة الخصوصية للتطبيق',
+    layout: 'تخطيط صفحة تسجيل الدخول',
+    layout_description: 'اختر تخطيط صفحة تسجيل الدخول والتسجيل لهذا التطبيق.',
+    layout_default: 'افتراضي',
   },
   permissions: {
     name: 'الأذونات',

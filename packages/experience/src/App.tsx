@@ -64,6 +64,7 @@ import { UserMfaFlow } from './types';
 import 'overlayscrollbars/overlayscrollbars.css';
 import './shared/scss/normalized.scss';
 import './scss/overlayscrollbars.scss';
+import './scss/view-transition.scss';
 
 handleSearchParametersData();
 

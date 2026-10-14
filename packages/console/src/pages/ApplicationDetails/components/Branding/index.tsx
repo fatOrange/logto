@@ -16,6 +16,7 @@ import ImageInputs, { themeToLogoName } from '@/components/ImageInputs';
 import RequestDataError from '@/components/RequestDataError';
 import UnsavedChangesAlertModal from '@/components/UnsavedChangesAlertModal';
 import { appSpecificBrandingLink, logtoThirdPartyAppBrandingLink } from '@/consts';
+import { isDevFeaturesEnabled } from '@/consts/env';
 import FormField from '@/ds-components/FormField';
 import Switch from '@/ds-components/Switch';
 import TextInput from '@/ds-components/TextInput';
@@ -25,6 +26,7 @@ import { emptyBranding } from '@/types/sign-in-experience';
 import { trySubmitSafe } from '@/utils/form';
 import { uriValidator } from '@/utils/validator';
 
+import LayoutField from './LayoutField';
 import NonThirdPartyBrandingForm from './NonThirdPartyBrandingForm';
 import useApplicationSignInExperienceSWR from './use-application-sign-in-experience-swr';
 import useSignInExperienceSWR from './use-sign-in-experience-swr';
@@ -99,6 +101,11 @@ function Branding({ application, isActive }: Props) {
     reset({
       ...data,
       branding: { ...emptyBranding, ...data.branding },
+      // The sign-in layout choice survives branding toggles: it is taken from the saved data
+      // verbatim (null/absent = default layout) and is never overwritten by the switch. When the
+      // Console dev flag is off, keep it undefined so saves omit the field entirely, even if the
+      // API (independently configured) still returns it.
+      layout: isDevFeaturesEnabled ? data.layout : undefined,
       isBrandingEnabled: application.isThirdParty
         ? true
         : Object.keys(data.branding).length > 0 ||
@@ -152,6 +159,7 @@ function Branding({ application, isActive }: Props) {
                 <FormField title="application_details.branding.display_name">
                   <TextInput {...register('displayName')} placeholder={application.name} />
                 </FormField>
+                {isDevFeaturesEnabled && <LayoutField />}
                 <ImageInputs
                   uploadTitle="application_details.branding.app_logo"
                   control={control}
@@ -173,6 +181,7 @@ function Branding({ application, isActive }: Props) {
                     {...register('isBrandingEnabled')}
                   />
                 </FormField>
+                {isDevFeaturesEnabled && <LayoutField />}
                 {isBrandingEnabled && <NonThirdPartyBrandingForm />}
               </>
             )}

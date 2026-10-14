@@ -77,3 +77,22 @@ type AutoCompleteType =
 interface Body {
   json<T>(): Promise<T>;
 }
+
+// `Document.startViewTransition` shipped in lib.dom after TypeScript 5.5 (the resolved
+// toolchain version); drop this once the shared ts-config moves past it. Deliberately NOT named
+// `ViewTransition` — the real lib.dom interface types `finished` as `Promise<boolean>`, and an
+// interface merge here would break the upgrade.
+interface OneLayoutViewTransition {
+  readonly finished: Promise<boolean>;
+  readonly ready: Promise<void>;
+  readonly updateCallbackDone: Promise<boolean>;
+  skipTransition(): void;
+}
+
+interface Document {
+  /**
+   * Starts a same-document view transition. Only invoked from the OneLayout sign-in ↔ register
+   * seam (`use-one-layout-view-transition`), which guards availability at runtime before calling.
+   */
+  startViewTransition?(updateCallback?: () => Promise<void> | void): OneLayoutViewTransition;
+}

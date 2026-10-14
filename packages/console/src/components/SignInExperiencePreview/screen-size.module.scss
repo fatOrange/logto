@@ -11,6 +11,27 @@ $web-scale-y: calc($web-height / $web-iframe-height);
 $web-to-wrapper-offset-x: calc($web-iframe-width * 0.5 * ($web-scale-x - 1));
 $web-to-wrapper-offset-y: calc($web-iframe-height * 0.5 * ($web-scale-y - 1));
 
+// OneLayout Web
+// The OneLayout sign-in shell is designed against a 1280x900 desktop viewport; scale it uniformly
+// into the same panel width as the default web preview.
+$one-layout-web-iframe-width: 1280px;
+$one-layout-web-iframe-height: 900px;
+
+$one-layout-web-width: $web-width;
+$one-layout-web-height: calc(
+  $one-layout-web-width * $one-layout-web-iframe-height / $one-layout-web-iframe-width
+);
+
+$one-layout-web-scale-x: calc($one-layout-web-width / $one-layout-web-iframe-width);
+$one-layout-web-scale-y: calc($one-layout-web-height / $one-layout-web-iframe-height);
+
+$one-layout-web-to-wrapper-offset-x: calc(
+  $one-layout-web-iframe-width * 0.5 * ($one-layout-web-scale-x - 1)
+);
+$one-layout-web-to-wrapper-offset-y: calc(
+  $one-layout-web-iframe-height * 0.5 * ($one-layout-web-scale-y - 1)
+);
+
 // Mobile
 $mobile-iframe-width: 390px;
 $mobile-iframe-height: 844px;

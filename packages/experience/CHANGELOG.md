@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+- remove the “Powered by Logto” signature from all sign-in experience layouts
+
 ## 1.23.0
 
 ### Minor Changes

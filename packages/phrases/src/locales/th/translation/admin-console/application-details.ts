@@ -174,6 +174,9 @@ const application_details = {
     brand_color_dark: 'สีแบรนด์ (โหมดมืด)',
     terms_of_use_url: 'URL ข้อกำหนดการใช้งานแอปพลิเคชัน',
     privacy_policy_url: 'URL นโยบายความเป็นส่วนตัวของแอปพลิเคชัน',
+    layout: 'เลย์เอาต์ของหน้าลงชื่อเข้าใช้',
+    layout_description: 'เลือกเลย์เอาต์ของหน้าลงชื่อเข้าใช้และลงทะเบียนสำหรับแอปพลิเคชันนี้',
+    layout_default: 'ค่าเริ่มต้น',
   },
   permissions: {
     name: 'สิทธิ์',

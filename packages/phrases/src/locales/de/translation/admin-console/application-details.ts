@@ -182,6 +182,10 @@ const application_details = {
     brand_color_dark: 'Markenfarbe (dunkel)',
     terms_of_use_url: 'URL der Anwendungsbedingungen',
     privacy_policy_url: 'URL der Anwendungsdatenschutzbestimmungen',
+    layout: 'Layout der Anmeldeseite',
+    layout_description:
+      'Wählen Sie das Layout der Anmelde- und Registrierungsseite für diese Anwendung.',
+    layout_default: 'Standard',
   },
   permissions: {
     name: 'Berechtigungen',

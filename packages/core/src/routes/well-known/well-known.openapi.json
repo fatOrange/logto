@@ -19,6 +19,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "layout": {
+                      "description": "Dev feature. The sign-in page layout selected by the application (via the `app_id` query parameter) the request resolves to. Absent when the application uses the default layout; never inherited from another application.",
+                      "x-logto-dev-feature": true
+                    },
                     "socialConnectors": {
                       "description": "The social connector data rendered on the sign-in page.",
                       "type": "array",
@@ -70,6 +74,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "layout": {
+                      "description": "Dev feature. The sign-in page layout selected by the application (via the `app_id` query parameter) the request resolves to. Absent when the application uses the default layout; never inherited from another application.",
+                      "x-logto-dev-feature": true
+                    },
                     "socialConnectors": {
                       "description": "The social connector data rendered on the sign-in page.",
                       "type": "array",

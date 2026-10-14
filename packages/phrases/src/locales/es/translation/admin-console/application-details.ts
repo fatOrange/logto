@@ -181,6 +181,10 @@ const application_details = {
     brand_color_dark: 'Color de la marca (oscuro)',
     terms_of_use_url: 'URL de Términos de Uso de la Aplicación',
     privacy_policy_url: 'URL de Política de Privacidad de la Aplicación',
+    layout: 'Diseño de la página de inicio de sesión',
+    layout_description:
+      'Elige el diseño de la página de inicio de sesión y registro para esta aplicación.',
+    layout_default: 'Predeterminado',
   },
   permissions: {
     name: 'Permisos',

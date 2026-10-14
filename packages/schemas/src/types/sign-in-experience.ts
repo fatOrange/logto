@@ -12,7 +12,12 @@ import {
   type SignInExperience,
   SignInExperiences,
 } from '../db-entries/index.js';
-import { CaptchaType, RecaptchaEnterpriseMode } from '../foundations/jsonb-types/index.js';
+import {
+  CaptchaType,
+  RecaptchaEnterpriseMode,
+  signInLayoutGuard,
+  type SignInLayout,
+} from '../foundations/jsonb-types/index.js';
 import { type ToZodObject } from '../utils/zod.js';
 
 import { type SsoConnectorMetadata, ssoConnectorMetadataGuard } from './sso-connector.js';
@@ -65,6 +70,12 @@ export type FullSignInExperience = Omit<
    * and `type`) outside the sign-up field list, such as the account center profile page.
    */
   customProfileFieldCatalog?: Readonly<CustomProfileField[]>;
+  /**
+   * The sign-in page layout selected by the application (`app_id`) the request resolves to.
+   * It is only set when the application explicitly chose one; `undefined` means the default
+   * layout, and it is never inherited from another application.
+   */
+  layout?: SignInLayout;
 };
 
 export const fullSignInExperienceGuard = SignInExperiences.guard
@@ -96,4 +107,5 @@ export const fullSignInExperienceGuard = SignInExperiences.guard
       .optional(),
     customProfileFields: CustomProfileFields.guard.array(),
     customProfileFieldCatalog: CustomProfileFields.guard.array().optional(),
+    layout: signInLayoutGuard.optional(),
   }) satisfies ToZodObject<FullSignInExperience>;

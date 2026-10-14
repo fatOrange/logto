@@ -3,6 +3,7 @@ import {
   Theme,
   ConnectorType,
   ForgotPasswordMethod,
+  SignInLayout,
   signInExperiencePreviewMessageSender,
 } from '@logto/schemas';
 import type { ConnectorMetadata, ConnectorResponse } from '@logto/schemas';
@@ -30,6 +31,12 @@ type Props = {
   readonly language?: LanguageTag;
   readonly signInExperience?: SignInExperiencePageManagedData;
   /**
+   * Preview-only sign-in page layout, for the under-development Application sign-in layouts
+   * feature. When provided, it overrides the layout in the posted preview config; it is never
+   * persisted, and it is omitted from the config when not provided.
+   */
+  readonly layout?: SignInLayout;
+  /**
    * The Logto endpoint to use for the preview. If not provided, the current tenant endpoint from
    * the `AppDataContext` will be used.
    */
@@ -47,6 +54,7 @@ function SignInExperiencePreview({
   mode,
   language = 'en',
   signInExperience,
+  layout,
   endpoint: endpointInput,
   disabled = false,
 }: Props) {
@@ -110,13 +118,15 @@ function SignInExperiencePreview({
         ...signInExperience,
         socialConnectors,
         forgotPassword,
+        // Inject the preview-only layout conditionally to avoid overriding with `undefined`.
+        ...conditional(layout && { layout }),
       },
       language,
       mode,
       platform: platform === PreviewPlatform.DesktopWeb ? 'web' : 'mobile',
       isNative: platform === PreviewPlatform.Mobile,
     };
-  }, [allConnectors, language, mode, platform, signInExperience]);
+  }, [allConnectors, language, layout, mode, platform, signInExperience]);
 
   const postPreviewMessage = useCallback(() => {
     if (!configForUiPage || !customPhrases) {
@@ -155,6 +165,14 @@ function SignInExperiencePreview({
     postPreviewMessage();
   }, [iframeLoaded, postPreviewMessage]);
 
+  /**
+   * Preview the wide 1280x900 OneLayout desktop shell instead of the default 700x880 viewport.
+   * Only effective on the desktop web preview and when the caller provides the OneLayout layout
+   * (the caller already gates this behind the dev features flag).
+   */
+  const isOneLayoutWeb =
+    !disabled && platform === PreviewPlatform.DesktopWeb && layout === SignInLayout.OneLayout;
+
   if (!endpoint) {
     return null;
   }
@@ -164,12 +182,14 @@ function SignInExperiencePreview({
       className={classNames(
         styles.preview,
         platform === PreviewPlatform.DesktopWeb ? styles.web : styles.mobile,
+        isOneLayoutWeb && styles.oneLayoutWeb,
         disabled && styles.disabled
       )}
       style={conditional(
         platform === PreviewPlatform.DesktopWeb && {
           // Set background color to match iframe's background color on both dark and light mode.
-          backgroundColor: mode === Theme.Dark ? '#000' : '#e5e1ec',
+          // The OneLayout shell renders on a near-white surface.
+          backgroundColor: mode === Theme.Dark ? '#000' : isOneLayoutWeb ? '#fcfcfc' : '#e5e1ec',
         }
       )}
     >

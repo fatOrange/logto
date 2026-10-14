@@ -176,6 +176,9 @@ const application_details = {
     brand_color_dark: 'رنگ برند (تاریک)',
     terms_of_use_url: 'URL شرایط استفاده برنامه',
     privacy_policy_url: 'URL سیاست حریم خصوصی برنامه',
+    layout: 'چیدمان صفحه ورود',
+    layout_description: 'چیدمان صفحه ورود و ثبت‌نام این برنامه را انتخاب کنید.',
+    layout_default: 'پیش‌فرض',
   },
   permissions: {
     name: 'مجوزها',
