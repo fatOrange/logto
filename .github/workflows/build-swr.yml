@@ -15,29 +15,28 @@ concurrency:
 
 jobs:
   build:
+    # Only master publishes. Manual dispatches on other branches are skipped so
+    # the shared `latest` tag can never be overwritten by a non-master build.
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    # Configure SWR_ORG in repository variables and SWR credentials in repository secrets.
+    # SWR organization is fixed to digitprint; SWR credentials stay in repository secrets.
     env:
       REGISTRY: swr.cn-east-3.myhuaweicloud.com
-      SWR_ORG: ${{ vars.SWR_ORG }}
+      IMAGE: swr.cn-east-3.myhuaweicloud.com/digitprint/logto
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Define image reference
+      - name: Define image references
         id: image
         shell: bash
         run: |
-          if [[ -z "$SWR_ORG" ]]; then
-            echo "::error::Configure the SWR_ORG repository variable."
-            exit 1
-          fi
-
-          tag="sha-${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          echo "ref=${REGISTRY}/${SWR_ORG}/logto:${tag}" >> "$GITHUB_OUTPUT"
+          version="sha-${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "version-ref=${IMAGE}:${version}" >> "$GITHUB_OUTPUT"
+          echo "latest-ref=${IMAGE}:latest" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -56,14 +55,20 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.image.outputs.ref }}
+          tags: ${{ steps.image.outputs.version-ref }},${{ steps.image.outputs.latest-ref }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Report published image
+      - name: Report published images
         env:
-          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          VERSION_REF: ${{ steps.image.outputs.version-ref }}
+          LATEST_REF: ${{ steps.image.outputs.latest-ref }}
         shell: bash
         run: |
-          printf '### Published image\n`%s`\n' "$IMAGE_REF" \
-            >> "$GITHUB_STEP_SUMMARY"
+          {
+            printf '### Published images\n'
+            printf '| Purpose | Image reference |\n'
+            printf '| --- | --- |\n'
+            printf '| Deploy (latest, master) | `%s` |\n' "$LATEST_REF"
+            printf '| Rollback (pinned version) | `%s` |\n' "$VERSION_REF"
+          } >> "$GITHUB_STEP_SUMMARY"

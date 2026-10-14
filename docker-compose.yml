@@ -1,13 +1,11 @@
-# This compose file is for demonstration only, do not use in prod.
-# Builds the repository source. Set DB_URL, ENDPOINT, and ADMIN_ENDPOINT before deployment.
+# This compose file runs the prebuilt image `swr.cn-east-3.myhuaweicloud.com/digitprint/logto:latest`
+# from the fixed `digitprint` organization on SWR. The database is external: this stack does not
+# start or bundle PostgreSQL, so `DB_URL` must point at an existing PostgreSQL instance.
+# Set DB_URL, ENDPOINT, and ADMIN_ENDPOINT before deployment.
 services:
   app:
-    depends_on:
-      postgres:
-        condition: service_healthy
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: swr.cn-east-3.myhuaweicloud.com/digitprint/logto:latest
+    pull_policy: always
     entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
     ports:
       - 3001:3001
@@ -29,14 +27,3 @@ services:
       # Public URLs are configured by the deployment environment.
       - ENDPOINT=${ENDPOINT:?}
       - ADMIN_ENDPOINT=${ADMIN_ENDPOINT:?}
-  postgres:
-    image: postgres:17-alpine
-    user: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: p0stgr3s
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
