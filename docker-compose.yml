@@ -1,17 +1,20 @@
 # This compose file is for demonstration only, do not use in prod.
+# Builds the repository source. Set DB_URL, ENDPOINT, and ADMIN_ENDPOINT before deployment.
 services:
   app:
     depends_on:
       postgres:
         condition: service_healthy
-    image: svhd/logto:${TAG-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
     entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
     ports:
       - 3001:3001
       - 3002:3002
     environment:
       - TRUST_PROXY_HEADER=1
-      - DB_URL=postgres://postgres:p0stgr3s@postgres:5432/logto
+      - DB_URL=${DB_URL:?}
       # Optional default grace period, in seconds, for OIDC private key rotation when the API
       # request omits `rotationGracePeriod`.
       - PRIVATE_KEY_ROTATION_GRACE_PERIOD
@@ -23,10 +26,9 @@ services:
       - SSRF_ALLOWED_ADDRESSES
       - SSRF_PROTECTION_DISABLED
       - OIDC_PROVIDER_SSRF_PROTECTION_DISABLED
-      # Mandatory for GitPod to map host env to the container, thus GitPod can dynamically configure the public URL of Logto;
-      # Or, you can leverage it for local testing.
-      - ENDPOINT
-      - ADMIN_ENDPOINT
+      # Public URLs are configured by the deployment environment.
+      - ENDPOINT=${ENDPOINT:?}
+      - ADMIN_ENDPOINT=${ADMIN_ENDPOINT:?}
   postgres:
     image: postgres:17-alpine
     user: postgres
