@@ -55,6 +55,8 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64
           push: true
+          # SWR cannot parse the image index containing BuildKit provenance attestations.
+          provenance: false
           tags: ${{ steps.image.outputs.version-ref }},${{ steps.image.outputs.latest-ref }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
