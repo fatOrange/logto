@@ -7,6 +7,21 @@ services:
     image: swr.cn-east-3.myhuaweicloud.com/digitprint/logto:latest
     pull_policy: always
     entrypoint: ["sh", "-c", "npm run cli db seed -- --swe && npm start"]
+    # Check the local API; allow time for database seeding before counting startup failures.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch('http://127.0.0.1:3001/api/status',
+          {signal: AbortSignal.timeout(4000), redirect: 'manual'})
+          .then(r => process.exit(r.status === 204 ? 0 : 1))
+          .catch(() => process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
     ports:
       - 3001:3001
       - 3002:3002
